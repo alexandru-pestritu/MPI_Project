@@ -16,7 +16,7 @@ services:
       wait"
     restart: unless-stopped
     networks:
-      seth-repo-network:
+      custom_network:
         ipv4_address: 172.20.100.2
 
     
@@ -31,12 +31,12 @@ services:
     ports:
       - '8080:8080'
     networks:
-      seth-repo-network:
+      custom_network:
         ipv4_address: 172.20.100.3
-        
+
 
 networks:
-  seth-repo-network:
+  custom_network:
     driver: bridge
     ipam:
       driver: default
