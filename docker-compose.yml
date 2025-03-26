@@ -1,0 +1,45 @@
+services:
+  sql_server:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sql-server
+    environment:
+      MSSQL_SA_PASSWORD: "Password123"
+      ACCEPT_EULA: "Y"
+    ports:
+      - '1433:1433'
+    volumes:
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/start.sql
+    command: >
+      /bin/bash -c "/opt/mssql/bin/sqlservr & 
+      sleep 10s; 
+      /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P Password123 -i /docker-entrypoint-initdb.d/start.sql -C; 
+      wait"
+    restart: unless-stopped
+    networks:
+      custom_network:
+        ipv4_address: 172.20.100.2
+
+    
+  backend:
+    image: backend
+    container_name: backend
+    depends_on:
+      - sql_server
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - '8080:8080'
+    networks:
+      custom_network:
+        ipv4_address: 172.20.100.3
+
+
+networks:
+  custom_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.20.100.0/24"
+          gateway: "172.20.100.1"
