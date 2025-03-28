@@ -27,7 +27,7 @@ public class AuthController : Controller
     [Route("login")]
     public async Task<IActionResult> AuthenticateAsync([FromBody] AuthRequest request)
     {
-        User? user = await _authProvider.AuthenticateAsync(request.Username, request.Password);
+        User? user = await _authProvider.AuthenticateAsync(request.Email, request.Password);
         if (user is null)
         {
             return Unauthorized("Invalid credentials");

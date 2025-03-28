@@ -14,11 +14,14 @@ import { HttpClientModule, HTTP_INTERCEPTORS, provideHttpClient, withFetch } fro
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import {ConfirmDialogModule} from 'primeng/confirmdialog';
+import { RegisterComponent } from './components/register/register.component';
+import { DropdownModule } from 'primeng/dropdown';
 
 @NgModule({
   declarations: [
     AppComponent,
-    LoginComponent
+    LoginComponent,
+    RegisterComponent
   ],
   imports: [
     BrowserModule,
@@ -29,6 +32,7 @@ import {ConfirmDialogModule} from 'primeng/confirmdialog';
     HttpClientModule,
     ToastModule,
     ConfirmDialogModule,
+    DropdownModule,
   ],
   providers: [
     provideHttpClient(withFetch()),
