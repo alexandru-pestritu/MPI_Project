@@ -1,0 +1,99 @@
+<div class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="p-6 bg-white rounded shadow-md w-96">
+        <h2 class="text-2xl font-bold mb-6">Register</h2>
+
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+            <div class="mb-4">
+                <label for="username" class="block mb-2 text-sm font-medium text-gray-700">
+                    Username
+                </label>
+                <input
+                    pInputText
+                    type="text"
+                    id="username"
+                    formControlName="username"
+                    placeholder="Enter your username"
+                    class="w-full p-2 border border-gray-300 rounded"
+                />
+                <div class="text-red-500 text-sm mt-1" *ngIf="registerForm.get('username')?.touched && registerForm.get('username')?.invalid">
+                    Username is required.
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="email" class="block mb-2 text-sm font-medium text-gray-700">
+                    Email
+                </label>
+                <input
+                    pInputText
+                    type="email"
+                    id="email"
+                    formControlName="email"
+                    placeholder="Enter your email"
+                    class="w-full p-2 border border-gray-300 rounded"
+                />
+                <div class="text-red-500 text-sm mt-1" *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.invalid">
+                    <span *ngIf="registerForm.get('email')?.hasError('required')">Email is required.</span>
+                    <span *ngIf="registerForm.get('email')?.hasError('email')">Invalid email format.</span>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="password" class="block mb-2 text-sm font-medium text-gray-700">
+                    Password
+                </label>
+                <input
+                    pInputText
+                    type="password"
+                    id="password"
+                    formControlName="password"
+                    placeholder="Enter your password"
+                    class="w-full p-2 border border-gray-300 rounded"
+                />
+                <div class="text-red-500 text-sm mt-1" *ngIf="registerForm.get('password')?.touched && registerForm.get('password')?.invalid">
+                    Password is required.
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="confirmPassword" class="block mb-2 text-sm font-medium text-gray-700">
+                    Confirm Password
+                </label>
+                <input
+                    pInputText
+                    type="password"
+                    id="confirmPassword"
+                    formControlName="confirmPassword"
+                    placeholder="Confirm your password"
+                    class="w-full p-2 border border-gray-300 rounded"
+                />
+                <div class="text-red-500 text-sm mt-1" *ngIf="registerForm.get('confirmPassword')?.touched && registerForm.get('confirmPassword')?.invalid">
+                    Password confirmation is required.
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="role" class="block mb-2 text-sm font-medium text-gray-700">Role</label>
+                <p-dropdown 
+                    [options]="roles" 
+                    optionLabel="label" 
+                    formControlName="role" 
+                    placeholder="Select Role" 
+                    class="w-full">
+                </p-dropdown>
+                <div class="text-red-500 text-sm mt-1" *ngIf="registerForm.get('role')?.touched && registerForm.get('role')?.invalid">
+                    Role is required.
+                </div>
+            </div>
+
+            <button pButton type="submit" label="Register" class="w-full" [disabled]="registerForm.invalid"></button>
+        </form>
+
+        <div class="mt-4 text-center">
+            <p class="text-sm text-gray-600">
+                Already have an account?
+                <a routerLink="/login" class="text-emerald-600 hover:underline">Login</a>
+            </p>
+        </div>
+    </div>
+</div>
