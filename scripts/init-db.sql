@@ -19,7 +19,8 @@ create table Users (
     [Username] nvarchar(255) NOT NULL,
     [Password] nvarchar(255) NOT NULL,
     [Email] nvarchar(255) NOT NULL,
-    [Role] smallint not null
+    [Role] smallint not null,
+    [IsVerified] bit not null default 0
 )
 end 
 GO

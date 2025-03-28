@@ -13,14 +13,18 @@ public class AuthProvider : IAuthProvider
         _manager = manager;
     }
 
-    public async Task<User?> AuthenticateAsync(string email, string password)
+    public async Task<AuthResponse> AuthenticateAsync(string email, string password)
     {
         string query = "SELECT * FROM Users WHERE Email = @Email AND Password = @Password";
         string hashedPassword = HashPassword(password);
         User? user = await _manager.ReadObjectOfTypeAsync(query, ConvertUser,
             new KeyValuePair<string, object>("Email", email),
             new KeyValuePair<string, object>("Password", hashedPassword));
-        return user;
+        if(user == null)
+            return new AuthResponse("Invalid email or password",false);
+        if(!user.IsVerified)
+            return new AuthResponse("Email is not confirmed",false);
+        return new AuthResponse(user);
     }
 
     public async Task<RegisterResponse> RegisterAsync(string username, string email, string password,string confirmPassword, short role)
@@ -78,6 +82,7 @@ public class AuthProvider : IAuthProvider
         string password = (string)values[2];
         string email = (string)values[3];
         short role = (short)values[4];
-        return new User(id, username, password, email, role);
+        bool isVerified = (bool)values[5];
+        return new User(id, username, password, email, role, isVerified);
     }
 }

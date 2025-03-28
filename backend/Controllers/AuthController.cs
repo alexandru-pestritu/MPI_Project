@@ -27,19 +27,19 @@ public class AuthController : Controller
     [Route("login")]
     public async Task<IActionResult> AuthenticateAsync([FromBody] AuthRequest request)
     {
-        User? user = await _authProvider.AuthenticateAsync(request.Email, request.Password);
-        if (user is null)
+        var response = await _authProvider.AuthenticateAsync(request.Email, request.Password);
+        if (!response.IsSuccess)
         {
             return Unauthorized("Invalid credentials");
         }
         
-        string? roleString = Enum.GetName(typeof(Role), user.Role);
+        string? roleString = Enum.GetName(typeof(Role), response.User.Role);
         
         if(roleString is null)
         {
             return Unauthorized("Invalid role");
         }
-        var token = GenerateJwtToken(user, roleString);
+        var token = GenerateJwtToken(response.User, roleString);
         
         return Ok(new { token });
     }
