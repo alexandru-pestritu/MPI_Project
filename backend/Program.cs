@@ -1,4 +1,5 @@
 using System.Text;
+using backend.Services;
 using DbProvider.Database;
 using DbProvider.Providers;
 using Microsoft.IdentityModel.Tokens;
@@ -49,6 +50,24 @@ builder.Services.AddSingleton<IAuthProvider>(sp =>
     return new AuthProvider(dbManager);
 });
 
+builder.Services.AddTransient<IEmailSender>(sp =>
+{
+    return new EmailSender(builder.Configuration);
+});
+
+builder.Services.AddSingleton<IAppEmailService>(sp =>
+{
+    IEmailSender? emailSender = sp.GetService<IEmailSender>();
+    if (emailSender is null)
+    {
+        throw new InvalidOperationException("Email sender not found");
+    }
+
+    return new AppEmailService(emailSender);
+});
+
+
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: "AllowAllOrigins",
@@ -62,6 +81,8 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+
 
 builder.Services.AddControllers();
 
