@@ -49,6 +49,17 @@ builder.Services.AddSingleton<IAuthProvider>(sp =>
     return new AuthProvider(dbManager);
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: "AllowAllOrigins",
+        configurePolicy: policy =>
+        {
+            policy.AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -63,6 +74,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseCors("AllowAllOrigins");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSwagger();
