@@ -1,6 +1,8 @@
 .idea/
 /backend/obj
 /backend/bin
+/DbProvider/obj
+/DbProvider/bin
 
 /frontend/dist
 /frontend/tmp
