@@ -1,6 +1,6 @@
 namespace backend.Models;
 
-public enum Role
+public enum Role : short
 {
     Student,
     Teacher,

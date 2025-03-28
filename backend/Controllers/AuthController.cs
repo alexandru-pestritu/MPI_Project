@@ -4,6 +4,7 @@ using System.Text;
 using backend.Models;
 using DbProvider.Models;
 using DbProvider.Providers;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -41,6 +42,20 @@ public class AuthController : Controller
         var token = GenerateJwtToken(user, roleString);
         
         return Ok(new { token });
+    }
+
+    [HttpPost]
+    [Route("register")]
+    public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request)
+    {
+        var result = await _authProvider.RegisterAsync(request.Username, request.Email, request.Password, (short)Role.Student );
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(result.Message);
+        }
+
+        return Ok();
     }
     
     private string GenerateJwtToken(User user, string role)
