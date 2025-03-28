@@ -22,6 +22,13 @@ export class AuthService {
         catchError(this.handleError)
       );
     }
+
+    register(username: string,email:string, password: string,confirmpassword:string,role:number): Observable<void> {
+      const body = { username,email, password,confirmpassword,role };
+      return this.httpService.post<any>(`${this.endpoint}/register`, body);
+      
+    }
+    
     
 
   private handleError(error: any): Observable<never> {
