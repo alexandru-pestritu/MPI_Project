@@ -13,12 +13,12 @@ public class AuthProvider : IAuthProvider
         _manager = manager;
     }
 
-    public async Task<User?> AuthenticateAsync(string username, string password)
+    public async Task<User?> AuthenticateAsync(string email, string password)
     {
-        string query = "SELECT * FROM Users WHERE Username = @Username AND Password = @Password";
+        string query = "SELECT * FROM Users WHERE Email = @Email AND Password = @Password";
         string hashedPassword = HashPassword(password);
         User? user = await _manager.ReadObjectOfTypeAsync(query, ConvertUser,
-            new KeyValuePair<string, object>("Username", username),
+            new KeyValuePair<string, object>("Email", email),
             new KeyValuePair<string, object>("Password", hashedPassword));
         return user;
     }
