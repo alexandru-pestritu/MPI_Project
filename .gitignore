@@ -1,12 +1,14 @@
 .idea/
 /backend/obj
 /backend/bin
+/DbProvider/obj
+/DbProvider/bin
 
 /frontend/dist
 /frontend/tmp
 /frontend/out-tsc
 /frontend/bazel-out
-
+/frontend/.angular
 # Node
 /frontend/node_modules
 */npm-debug.log
