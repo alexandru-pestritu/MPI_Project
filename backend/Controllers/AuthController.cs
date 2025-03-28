@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using backend.Models;
+using backend.Services;
 using DbProvider.Models;
 using DbProvider.Providers;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -16,30 +17,32 @@ public class AuthController : Controller
 {
     private readonly IAuthProvider _authProvider;
     private readonly IConfiguration _config;
+    private readonly IAppEmailService _emailService;
 
-    public AuthController(IAuthProvider authProvider, IConfiguration config)
+    public AuthController(IAuthProvider authProvider, IConfiguration config, IAppEmailService emailService)
     {
         _authProvider = authProvider;
         _config = config;
+        _emailService = emailService;
     }
 
     [HttpPost]
     [Route("login")]
     public async Task<IActionResult> AuthenticateAsync([FromBody] AuthRequest request)
     {
-        User? user = await _authProvider.AuthenticateAsync(request.Email, request.Password);
-        if (user is null)
+        var response = await _authProvider.AuthenticateAsync(request.Email, request.Password);
+        if (!response.IsSuccess)
         {
             return Unauthorized("Invalid credentials");
         }
         
-        string? roleString = Enum.GetName(typeof(Role), user.Role);
+        string? roleString = Enum.GetName(typeof(Role), response.User.Role);
         
         if(roleString is null)
         {
             return Unauthorized("Invalid role");
         }
-        var token = GenerateJwtToken(user, roleString);
+        var token = GenerateJwtToken(response.User, roleString);
         
         return Ok(new { token });
     }
@@ -51,6 +54,24 @@ public class AuthController : Controller
         var result = await _authProvider.RegisterAsync(request.Username, request.Email, request.Password,request.ConfirmPassword, request.Role );
 
         if (!result.IsSuccess)
+        {
+            return BadRequest(result.Message);
+        }
+        
+        string verifEmail =  $"{Request.Scheme}://{Request.Host}/api/auth/verify-email/{result.Token}";
+        
+        await  _emailService.SendVerificationEmailAsync(request.Email, verifEmail);
+
+        return Ok();
+    }
+
+    [HttpGet]
+    [Route("verify-email/{token}")]
+    public async Task<IActionResult> VerifyEmailAsync(string token)
+    {
+        var result = await _authProvider.VerifyUserAsync(token);
+        
+        if(!result.IsSuccess)
         {
             return BadRequest(result.Message);
         }

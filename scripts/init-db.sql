@@ -19,7 +19,8 @@ create table Users (
     [Username] nvarchar(255) NOT NULL,
     [Password] nvarchar(255) NOT NULL,
     [Email] nvarchar(255) NOT NULL,
-    [Role] smallint not null
+    [Role] smallint not null,
+    [IsVerified] bit not null default 0
 )
 end 
 GO
@@ -88,3 +89,17 @@ if not exists (select * from sys.tables where name = 'GradeHistory')
         )
     end
 GO
+
+if not exists (select * from sys.tables where name = 'VerifyTokens')
+    begin
+        create table VerifyTokens
+        (
+            [Id]     int identity (0,1) primary key,
+            [UserId] int          not null,
+            [Token]  varchar(max) not null,
+            [Type]   int          not null,
+            foreign key (UserId) references Users (Id)
+        )
+    end
+GO
+
