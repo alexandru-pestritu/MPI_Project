@@ -1,5 +1,6 @@
 using DbProvider.Database;
 using DbProvider.Models;
+using DbProvider.Models.ProviderOutputs;
 
 namespace DbProvider.Providers;
 
@@ -19,6 +20,15 @@ public class AuthProvider : IAuthProvider
             new KeyValuePair<string, object>("Username", username),
             new KeyValuePair<string, object>("Password", hashedPassword));
         return user;
+    }
+
+    public async Task<RegisterResponse> RegisterAsync(string username, string email, string password, short role)
+    {
+        string hashedPassword = HashPassword(password);
+        return await _manager.InsertAsync("Users", new KeyValuePair<string, object>("Username",username),
+            new KeyValuePair<string, object>("Email",email),
+            new KeyValuePair<string, object>("Password",hashedPassword),
+            new KeyValuePair<string, object>("Role",role));
     }
 
     private string HashPassword(string password)
