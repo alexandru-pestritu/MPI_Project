@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using DbProvider.Database;
 using DbProvider.Models;
 using DbProvider.Models.ProviderOutputs;
@@ -22,13 +23,42 @@ public class AuthProvider : IAuthProvider
         return user;
     }
 
-    public async Task<RegisterResponse> RegisterAsync(string username, string email, string password, short role)
+    public async Task<RegisterResponse> RegisterAsync(string username, string email, string password,string confirmPassword, short role)
     {
+        if(!ValidatePassword(password, confirmPassword))
+            return "Passwords do not match!";
+        
+        if(!ValidateEmailStructure(email))
+            return "Invalid email address!";
+        
+        if(! await ValidateEmailAvailability(email))
+            return "Email address already in use!";
+        
         string hashedPassword = HashPassword(password);
         return await _manager.InsertAsync("Users", new KeyValuePair<string, object>("Username",username),
             new KeyValuePair<string, object>("Email",email),
             new KeyValuePair<string, object>("Password",hashedPassword),
             new KeyValuePair<string, object>("Role",role));
+    }
+
+
+    private bool ValidateEmailStructure(string email)
+    {
+        Regex regex = new Regex(@"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$");
+        Match match = regex.Match(email);
+        return match.Success;
+    }
+
+    private async Task<bool> ValidateEmailAvailability(string email)
+    {
+        string query = "SELECT * FROM Users WHERE Email = @Email";
+        User?  user = await _manager.ReadObjectOfTypeAsync(query, ConvertUser,new KeyValuePair<string, object>("Email", email));
+        return user == null;
+    }
+
+    private bool ValidatePassword(string password, string confirmPassword)
+    {
+        return password.Equals(confirmPassword);
     }
 
     private string HashPassword(string password)
