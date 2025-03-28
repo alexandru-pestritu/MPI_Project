@@ -48,7 +48,7 @@ public class AuthController : Controller
     [Route("register")]
     public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request)
     {
-        var result = await _authProvider.RegisterAsync(request.Username, request.Email, request.Password, (short)Role.Student );
+        var result = await _authProvider.RegisterAsync(request.Username, request.Email, request.Password,request.ConfirmPassword, request.Role );
 
         if (!result.IsSuccess)
         {
