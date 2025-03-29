@@ -42,6 +42,10 @@ export class AuthService {
     logout(): void {
       this.localStorageService.removeItem('token');
     }
+    
+    isLoggedIn(): boolean {
+      return this.localStorageService.getItem('token') !== null;
+    }
 
   private handleError(error: any): Observable<never> {
     return throwError(error);

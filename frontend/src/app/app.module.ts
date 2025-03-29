@@ -20,6 +20,12 @@ import { ForgotPasswordComponent } from './components/forgot-password/forgot-pas
 import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
 import { AuthInterceptor } from './services/http/interceptors/auth-interceptor.service';
 import { UserProfileComponent } from './components/user-profile/user-profile.component';
+import { MenuComponent } from './components/menu/menu.component';
+import { MenubarModule } from 'primeng/menubar';
+import { AvatarModule } from 'primeng/avatar';
+import { ImageModule } from 'primeng/image';
+import { MenuModule } from 'primeng/menu';
+import { DashboardComponent } from './components/dashboard/dashboard.component';
 
 @NgModule({
   declarations: [
@@ -28,7 +34,9 @@ import { UserProfileComponent } from './components/user-profile/user-profile.com
     RegisterComponent,
     ForgotPasswordComponent,
     ResetPasswordComponent,
-    UserProfileComponent
+    UserProfileComponent,
+    MenuComponent,
+    DashboardComponent
   ],
   imports: [
     BrowserModule,
@@ -40,6 +48,10 @@ import { UserProfileComponent } from './components/user-profile/user-profile.com
     ToastModule,
     ConfirmDialogModule,
     DropdownModule,
+    MenubarModule,
+    AvatarModule,
+    ImageModule,
+    MenuModule,
   ],
   providers: [
     provideHttpClient(withFetch()),
