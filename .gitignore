@@ -3,6 +3,7 @@
 /backend/bin
 /DbProvider/obj
 /DbProvider/bin
+/database_data
 
 /frontend/dist
 /frontend/tmp
@@ -42,3 +43,5 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+*.DotSettings.*

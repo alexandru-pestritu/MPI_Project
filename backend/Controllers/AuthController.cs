@@ -46,6 +46,35 @@ public class AuthController : Controller
         
         return Ok(new { token });
     }
+    
+    [HttpPost]
+    [Route("forgot-password")]
+    public async Task<IActionResult> ForgotPasswordAsync([FromBody] ForgotPasswordRequest request)
+    {
+        var result = await _authProvider.ForgotPasswordAsync(request.Email);
+        if (!result.IsSuccess)
+        {
+            return BadRequest(result.Message);
+        }
+        
+        string resetPasswordLink = $"{_config["Frontend:Url"]}/reset-password/{result.Token}";
+        await _emailService.SendPasswordResetEmailAsync(request.Email, resetPasswordLink);
+
+        return Ok();
+    }
+    
+    [HttpPost]
+    [Route("reset-password")]
+    public async Task<IActionResult> ResetPasswordAsync([FromBody] ResetPasswordRequest request)
+    {
+        var result = await _authProvider.ChangePasswordAsync(request.Token, request.Password, request.ConfirmPassword);
+        if (!result.IsSuccess)
+        {
+            return BadRequest(result.Message);
+        }
+
+        return Ok();
+    }
 
     [HttpPost]
     [Route("register")]
@@ -76,7 +105,7 @@ public class AuthController : Controller
             return BadRequest(result.Message);
         }
 
-        return Ok();
+        return Redirect($"{_config["Frontend:Url"]}/login");
     }
     
     private string GenerateJwtToken(User user, string role)

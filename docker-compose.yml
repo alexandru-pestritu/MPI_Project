@@ -10,6 +10,9 @@ services:
       - '1433:1433'
     volumes:
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/start.sql
+      - ./database_data/data:/var/opt/mssql/data
+      - ./database_data/log:/var/opt/mssql/log
+      - ./database_data/secrets:/var/opt/mssql/secrets
     command: >
       /bin/bash -c "/opt/mssql/bin/sqlservr & 
       sleep 20s; 
@@ -27,13 +30,27 @@ services:
     depends_on:
       - sql_server
     build:
-      context: .
-      dockerfile: backend/Dockerfile
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - '8080:8080'
     networks:
       custom_network:
         ipv4_address: 172.20.100.3
+        
+  frontend:
+    image: frontend
+    container_name: frontend
+    depends_on:
+      - backend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - '4200:4200'
+    networks:
+      custom_network:
+        ipv4_address: 172.20.100.4
 
 
 networks:

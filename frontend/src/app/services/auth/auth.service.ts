@@ -14,7 +14,7 @@ export class AuthService {
 
     login(email: string, password: string): Observable<void> {
       const body = { email, password };
-    
+
       return this.httpService.post<any>(`${this.endpoint}/login`, body).pipe(
         tap(response => {
           this.localStorageService.setItem('token', response.token);
@@ -26,10 +26,18 @@ export class AuthService {
     register(username: string,email:string, password: string,confirmpassword:string,role:number): Observable<void> {
       const body = { username,email, password,confirmpassword,role };
       return this.httpService.post<any>(`${this.endpoint}/register`, body);
-      
+
     }
-    
-    
+
+    forgot_password(email:string): Observable<void> {
+      const body = { email };
+      return this.httpService.post<any>(`${this.endpoint}/forgot-password`, body);
+    }
+
+    reset_password(token:string,password:string,confirmPassword:string): Observable<void> {
+      const body = { token,password,confirmPassword };
+      return this.httpService.post<any>(`${this.endpoint}/reset-password`, body);
+    }
 
   private handleError(error: any): Observable<never> {
     return throwError(error);

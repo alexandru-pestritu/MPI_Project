@@ -17,5 +17,13 @@ public class AppEmailService : IAppEmailService
             <p><a href='{verificationLink}'>Verify Now</a></p>";
         await _emailSender.SendEmailAsync(toEmail, subject, body, true);
     }
-    
+
+    public Task SendPasswordResetEmailAsync(string toEmail, string resetLink)
+    {
+        var subject = "Password Reset";
+        var body = $@"
+            <p>Please click the link below to reset your password:</p>
+            <p><a href='{resetLink}'>Reset Password</a></p>";
+        return _emailSender.SendEmailAsync(toEmail, subject, body, true);
+    }
 }
