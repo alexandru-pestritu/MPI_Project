@@ -18,6 +18,8 @@ import { RegisterComponent } from './components/register/register.component';
 import { DropdownModule } from 'primeng/dropdown';
 import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
+import { AuthInterceptor } from './services/http/interceptors/auth-interceptor.service';
+import { UserProfileComponent } from './components/user-profile/user-profile.component';
 
 @NgModule({
   declarations: [
@@ -25,7 +27,8 @@ import { ResetPasswordComponent } from './components/reset-password/reset-passwo
     LoginComponent,
     RegisterComponent,
     ForgotPasswordComponent,
-    ResetPasswordComponent
+    ResetPasswordComponent,
+    UserProfileComponent
   ],
   imports: [
     BrowserModule,
@@ -51,7 +54,8 @@ import { ResetPasswordComponent } from './components/reset-password/reset-passwo
             }
         }),
         MessageService,
-        ConfirmationService
+        ConfirmationService,
+        { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
   ],
   bootstrap: [AppComponent]
 })
