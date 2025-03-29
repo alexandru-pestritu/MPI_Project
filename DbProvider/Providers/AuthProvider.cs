@@ -74,6 +74,46 @@ public class AuthProvider : IAuthProvider
         return await _manager.DeleteAsync("VerifyTokens", new KeyValuePair<string, object>("Token", token));
     }
 
+    public async Task<ForgotPasswordResponse> ForgotPasswordAsync(string email)
+    {
+        string query = "SELECT * FROM Users WHERE Email = @Email";
+        User? user = await _manager.ReadObjectOfTypeAsync(query, ConvertUser, new KeyValuePair<string, object>("Email", email));
+        
+        if(user == null)
+            return new ForgotPasswordResponse("Email not found!");
+        
+        Guid guid = Guid.NewGuid();
+        
+        bool res = await _manager.InsertAsync("VerifyTokens", new KeyValuePair<string, object>("UserId", user.Id),
+            new KeyValuePair<string, object>("Token", guid.ToString()),
+            new KeyValuePair<string, object>("Type", 1));
+
+        return new ForgotPasswordResponse(guid.ToString(), res);
+    }
+
+    public async Task<BaseResponse> ChangePasswordAsync(string token, string password, string confirmPassword)
+    {
+        if(!ValidatePassword(password, confirmPassword))
+            return "Passwords don't match!";
+        
+        string query = "SELECT * FROM VerifyTokens WHERE Token = @Token";
+        VerifyToken? vToken = await _manager.ReadObjectOfTypeAsync(query, ConvertVerifyToken,new KeyValuePair<string, object>("Token",token));
+        
+        if(vToken == null)
+            return "Failed to verify token!";
+        
+        string hashedPassword = HashPassword(password);
+        
+        bool res = await _manager.UpdateAsync("Users", new KeyValuePair<string, object>("Id", vToken.UserId), new KeyValuePair<string, object>("Password",hashedPassword));
+
+        if (!res)
+        {
+            return "Failed to update password!";
+        }
+        
+        return await _manager.DeleteAsync("VerifyTokens", new KeyValuePair<string, object>("Token", token));
+    }
+
 
     private bool ValidateEmailStructure(string email)
     {
