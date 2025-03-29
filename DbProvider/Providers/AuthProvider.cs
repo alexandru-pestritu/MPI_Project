@@ -57,6 +57,14 @@ public class AuthProvider : IAuthProvider
         bool res = await _manager.InsertAsync("VerifyTokens", new KeyValuePair<string, object>("UserId", userId),
             new KeyValuePair<string, object>("Token", guid.ToString()),
             new KeyValuePair<string, object>("Type", 0));
+        
+        if(!res)
+            return new RegisterResponse("Failed to insert token!");
+
+        bool res2 = await _manager.InsertAsync("UserProfiles", new KeyValuePair<string, object>("UserId", userId));
+        
+        if(!res2)
+            return new RegisterResponse("Failed to create user profile!");
 
         return new RegisterResponse(guid.ToString(), res);
     }
