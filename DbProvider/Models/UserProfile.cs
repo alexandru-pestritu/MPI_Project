@@ -12,15 +12,12 @@ public class UserProfile
     
     public string Bio { get; set; }
     
-    public string ProfilePicture { get; set; }
-    
-    public UserProfile(int id, int userId, string firstName, string lastName, string bio, string profilePicture)
+    public UserProfile(int id, int userId, string firstName, string lastName, string bio)
     {
         Id = id;
         UserId = userId;
         FirstName = firstName;
         LastName = lastName;
         Bio = bio;
-        ProfilePicture = profilePicture;
     }
 }
