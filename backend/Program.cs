@@ -21,7 +21,8 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
             ValidateIssuer = true,
             ValidIssuer = issuer,
-            ValidateLifetime = true
+            ValidateLifetime = true,
+            ValidateAudience = false
         };
     });
 
@@ -48,6 +49,17 @@ builder.Services.AddSingleton<IAuthProvider>(sp =>
     }
 
     return new AuthProvider(dbManager);
+});
+
+builder.Services.AddSingleton<IUserProvider>(sp =>
+{
+    IDbManager? dbManager = sp.GetService<IDbManager>();
+    if (dbManager is null)
+    {
+        throw new InvalidOperationException("Database manager not found");
+    }
+
+    return new UserProvider(dbManager);
 });
 
 builder.Services.AddTransient<IEmailSender>(sp =>
@@ -80,7 +92,35 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "MPI_Project", Version = "v1" });
+    
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Enter 'Bearer' followed by a space and your token:\n\nExample: Bearer abc123"
+    });
+    
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 
 
