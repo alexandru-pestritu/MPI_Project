@@ -39,6 +39,14 @@ export class AuthService {
       return this.httpService.post<any>(`${this.endpoint}/reset-password`, body);
     }
 
+    logout(): void {
+      this.localStorageService.removeItem('token');
+    }
+    
+    isLoggedIn(): boolean {
+      return this.localStorageService.getItem('token') !== null;
+    }
+
   private handleError(error: any): Observable<never> {
     return throwError(error);
   }

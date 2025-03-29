@@ -20,6 +20,8 @@ public class DbManager : IDbManager
 
     public async Task<bool> InsertAsync(string tableName, params KeyValuePair<string, object>[] values)
     {
+        if (!_connection.State.HasFlag(ConnectionState.Open))
+            await _connection.OpenAsync();
         string columns = string.Join(", ", values.Select(v => v.Key));
         string parameters = string.Join(", ", values.Select(v => $"@{v.Key}"));
         
@@ -42,6 +44,8 @@ public class DbManager : IDbManager
 
     public async Task<T?> InsertAsyncWithReturn<T>(string tableName, string outputColumn, params KeyValuePair<string, object>[] values)
     {
+        if (!_connection.State.HasFlag(ConnectionState.Open))
+            await _connection.OpenAsync();
         string columns = string.Join(", ", values.Select(v => v.Key));
         string parameters = string.Join(", ", values.Select(v => $"@{v.Key}"));
         
@@ -69,6 +73,8 @@ public class DbManager : IDbManager
     
     public bool Insert(string tableName, params KeyValuePair<string, object>[] values)
     {
+        if (!_connection.State.HasFlag(ConnectionState.Open))
+            _connection.Open();
         string columns = string.Join(", ", values.Select(v => v.Key));
         string parameters = string.Join(", ", values.Select(v => $"@{v.Key}"));
         string query = $"INSERT INTO {tableName} ({columns}) VALUES ({parameters})";
@@ -90,6 +96,8 @@ public class DbManager : IDbManager
 
     public async Task<bool> UpdateAsync(string tableName, KeyValuePair<string, object> matchKey, params KeyValuePair<string, object>[] values)
     {
+        if (!_connection.State.HasFlag(ConnectionState.Open))
+           await _connection.OpenAsync();
         string setValues = string.Join(", ", values.Select(v => $"{v.Key} = @{v.Key}"));
         string query = $"UPDATE {tableName} SET {setValues} WHERE {matchKey.Key} = @{matchKey.Key}";
         
@@ -112,6 +120,8 @@ public class DbManager : IDbManager
 
     public bool Update(string tableName, KeyValuePair<string, object> matchKey, params KeyValuePair<string, object>[] values)
     {
+        if (!_connection.State.HasFlag(ConnectionState.Open))
+            _connection.Open();
         string setValues = string.Join(", ", values.Select(v => $"{v.Key} = @{v.Key}"));
         string query = $"UPDATE {tableName} SET {setValues} WHERE {matchKey.Key} = @{matchKey.Key}";
         
@@ -134,6 +144,8 @@ public class DbManager : IDbManager
 
     public async Task<bool> DeleteAsync(string tableName, params KeyValuePair<string, object>[] properties)
     {
+        if (!_connection.State.HasFlag(ConnectionState.Open))
+            await _connection.OpenAsync();
         string whereClause = string.Join(" AND ", properties.Select(p => $"{p.Key} = @{p.Key}"));
         string query = $"DELETE FROM {tableName} WHERE {whereClause}";
         
@@ -152,6 +164,8 @@ public class DbManager : IDbManager
 
     public bool Delete(string tableName, params KeyValuePair<string, object>[] properties)
     {
+        if (!_connection.State.HasFlag(ConnectionState.Open))
+            _connection.Open();
         string whereClause = string.Join(" AND ", properties.Select(p => $"{p.Key} = @{p.Key}"));
         string query = $"DELETE FROM {tableName} WHERE {whereClause}";
         
@@ -170,6 +184,8 @@ public class DbManager : IDbManager
 
     public async Task<bool> ContainsAnyAsync(string tableName, params KeyValuePair<string, object>[] properties)
     {
+        if (!_connection.State.HasFlag(ConnectionState.Open))
+            await _connection.OpenAsync();
         string whereClause = string.Join(" AND ", properties.Select(p => $"{p.Key} = @{p.Key}"));
         string query = $"SELECT COUNT(*) FROM {tableName} WHERE {whereClause}";
         
@@ -194,6 +210,8 @@ public class DbManager : IDbManager
 
     public bool ContainsAny(string tableName, params KeyValuePair<string, object>[] properties)
     {
+        if (!_connection.State.HasFlag(ConnectionState.Open))
+            _connection.Open();
         string whereClause = string.Join(" AND ", properties.Select(p => $"{p.Key} = @{p.Key}"));
         string query = $"SELECT COUNT(*) FROM {tableName} WHERE {whereClause}";
         
@@ -481,6 +499,8 @@ public class DbManager : IDbManager
             parameter.DbType = DbType.StringFixedLength;
         else if (value is char[])
             parameter.DbType = DbType.StringFixedLength;
+        else if (value is DBNull)
+            parameter.DbType = DbType.Object;
         else
             return null;
 

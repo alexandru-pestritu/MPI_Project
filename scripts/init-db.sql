@@ -25,15 +25,14 @@ create table Users (
 end 
 GO
 
-if not exists (select * from sys.tables where name = 'UserProfile')
+if not exists (select * from sys.tables where name = 'UserProfiles')
     begin
-        create table UserProfile (
+        create table UserProfiles (
             [Id] int identity (0,1) primary key,
             [UserId] int not null,
-            [FirstName] nvarchar(255) not null,
-            [LastName] nvarchar(255) not null,
-            [Bio] nvarchar(255) not null,
-            [ProfilePicture] nvarchar(255) not null,
+            [FirstName] nvarchar(255) default '',
+            [LastName] nvarchar(255) default '',
+            [Bio] nvarchar(255) default '',
             foreign key (UserId) references Users(Id)
         )
     end

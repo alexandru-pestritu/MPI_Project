@@ -18,6 +18,14 @@ import { RegisterComponent } from './components/register/register.component';
 import { DropdownModule } from 'primeng/dropdown';
 import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
+import { AuthInterceptor } from './services/http/interceptors/auth-interceptor.service';
+import { UserProfileComponent } from './components/user-profile/user-profile.component';
+import { MenuComponent } from './components/menu/menu.component';
+import { MenubarModule } from 'primeng/menubar';
+import { AvatarModule } from 'primeng/avatar';
+import { ImageModule } from 'primeng/image';
+import { MenuModule } from 'primeng/menu';
+import { DashboardComponent } from './components/dashboard/dashboard.component';
 
 @NgModule({
   declarations: [
@@ -25,7 +33,10 @@ import { ResetPasswordComponent } from './components/reset-password/reset-passwo
     LoginComponent,
     RegisterComponent,
     ForgotPasswordComponent,
-    ResetPasswordComponent
+    ResetPasswordComponent,
+    UserProfileComponent,
+    MenuComponent,
+    DashboardComponent
   ],
   imports: [
     BrowserModule,
@@ -37,6 +48,10 @@ import { ResetPasswordComponent } from './components/reset-password/reset-passwo
     ToastModule,
     ConfirmDialogModule,
     DropdownModule,
+    MenubarModule,
+    AvatarModule,
+    ImageModule,
+    MenuModule,
   ],
   providers: [
     provideHttpClient(withFetch()),
@@ -51,7 +66,8 @@ import { ResetPasswordComponent } from './components/reset-password/reset-passwo
             }
         }),
         MessageService,
-        ConfirmationService
+        ConfirmationService,
+        { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
   ],
   bootstrap: [AppComponent]
 })
