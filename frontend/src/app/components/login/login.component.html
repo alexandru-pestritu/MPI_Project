@@ -1,7 +1,7 @@
 <div class="flex items-center justify-center min-h-screen bg-gray-100">
     <div class="p-6 bg-white rounded shadow-md w-96">
       <h2 class="text-2xl font-bold mb-6">Login</h2>
-  
+
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <div class="mb-4">
           <label for="email" class="block mb-2 text-sm font-medium text-gray-700">
@@ -27,7 +27,7 @@
             </span>
           </div>
         </div>
-  
+
         <div class="mb-4">
           <label for="password" class="block mb-2 text-sm font-medium text-gray-700">
             Password
@@ -47,7 +47,7 @@
             Password is required.
           </div>
         </div>
-  
+
         <button
           pButton
           type="submit"
@@ -59,9 +59,12 @@
       </form>
         <div class="mt-4 text-center">
             <p class="text-sm text-gray-600">
-            Don't have an account? 
+            Don't have an account?
             <a routerLink="/register" class="text-emerald-600 hover:underline">Register</a>
             </p>
+          <p class="text-sm text-gray-600">
+            <a routerLink="/forgot-password" class="text-emerald-600 hover:underline">Forgot password ?</a>
+          </p>
     </div>
   </div>
-    
+</div>
