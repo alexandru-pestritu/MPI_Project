@@ -124,7 +124,7 @@ public class AuthController : Controller
         var claims = new[]
         {
             new Claim("UserId", user.Id.ToString()),
-            new Claim(ClaimTypes.Role, role),
+            new Claim("Role", role),
         };
 
         var tokenDescriptor = new JwtSecurityToken(

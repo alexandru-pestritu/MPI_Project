@@ -8,22 +8,25 @@ namespace DbProvider.Providers;
 public class AuthProvider : IAuthProvider
 {
     private readonly IDbManager _manager;
-    public AuthProvider(IDbManager manager)
+    private readonly IUserProvider _userProvider;
+    public AuthProvider(IDbManager manager, IUserProvider userProvider)
     {
         _manager = manager;
+        _userProvider = userProvider;
     }
 
     public async Task<AuthResponse> AuthenticateAsync(string email, string password)
     {
-        string query = "SELECT * FROM Users WHERE Email = @Email AND Password = @Password";
         string hashedPassword = HashPassword(password);
-        User? user = await _manager.ReadObjectOfTypeAsync(query, ConvertUser,
-            new KeyValuePair<string, object>("Email", email),
-            new KeyValuePair<string, object>("Password", hashedPassword));
+        User? user = await _userProvider.getUserByEmailAsync(email);
+        
+       
         if(user == null)
-            return new AuthResponse("Invalid email or password",false);
+            return new AuthResponse("User does not exist",false);
         if(!user.IsVerified)
             return new AuthResponse("Email is not confirmed",false);
+        if(hashedPassword!= user.Password)
+            return new AuthResponse("Invalid email or password",false);
         return new AuthResponse(user);
     }
 
@@ -84,8 +87,7 @@ public class AuthProvider : IAuthProvider
 
     public async Task<ForgotPasswordResponse> ForgotPasswordAsync(string email)
     {
-        string query = "SELECT * FROM Users WHERE Email = @Email";
-        User? user = await _manager.ReadObjectOfTypeAsync(query, ConvertUser, new KeyValuePair<string, object>("Email", email));
+        User? user = await _userProvider.getUserByEmailAsync(email);
         
         if(user == null)
             return new ForgotPasswordResponse("Email not found!");
@@ -132,8 +134,8 @@ public class AuthProvider : IAuthProvider
 
     private async Task<bool> ValidateEmailAvailability(string email)
     {
-        string query = "SELECT * FROM Users WHERE Email = @Email";
-        User?  user = await _manager.ReadObjectOfTypeAsync(query, ConvertUser,new KeyValuePair<string, object>("Email", email));
+
+        User? user = await _userProvider.getUserByEmailAsync(email);
         return user == null;
     }
 
@@ -162,14 +164,5 @@ public class AuthProvider : IAuthProvider
         return new VerifyToken(id,userId,token,type);
     }
     
-    private User ConvertUser(object[] values)
-    {
-        int id = (int)values[0];
-        string username = (string)values[1];
-        string password = (string)values[2];
-        string email = (string)values[3];
-        short role = (short)values[4];
-        bool isVerified = (bool)values[5];
-        return new User(id, username, password, email, role, isVerified);
-    }
+    
 }

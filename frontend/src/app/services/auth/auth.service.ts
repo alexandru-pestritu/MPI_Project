@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { catchError, Observable, tap, throwError } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { LocalStorageService } from '../local-storage/local-storage.service';
+import { jwtDecode } from "jwt-decode";
 
 @Injectable({
   providedIn: 'root'
@@ -42,9 +43,46 @@ export class AuthService {
     logout(): void {
       this.localStorageService.removeItem('token');
     }
+
+    private hasValidToken(): boolean {
+      const token = this.localStorageService.getItem("token");
+      if (!token) {
+        return false;
+      }
+  
+      try {
+        const { exp } = jwtDecode<{ exp: number }>(token);
+        return exp > Date.now() / 1000;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    getUserIdFromToken(): number | null {
+      const token = this.localStorageService.getItem("token");
+      if (!token) return null;
+    
+      try {
+        const { UserId } = jwtDecode<{ UserId: string }>(token);
+        return Number.parseInt(UserId);
+      } catch (e) {
+        return null;
+      }
+    }
+    getRoleFromToken(): string | null {
+      const token = this.localStorageService.getItem("token");
+      if (!token) return null;
+    
+      try {
+        const { Role } = jwtDecode<{ Role: string }>(token);
+        return Role;
+      } catch (e) {
+        return null;
+      }
+    }
     
     isLoggedIn(): boolean {
-      return this.localStorageService.getItem('token') !== null;
+      return this.localStorageService.getItem('token') !== null && this.hasValidToken();
     }
 
   private handleError(error: any): Observable<never> {
