@@ -39,8 +39,7 @@ builder.Services.AddSingleton<IDbManager>(sp =>
 
     return new DbManager(connectionDetails);
 });
-
-builder.Services.AddSingleton<IAuthProvider>(sp =>
+builder.Services.AddSingleton<ICourseProvider>(sp =>
 {
     IDbManager? dbManager = sp.GetService<IDbManager>();
     if (dbManager is null)
@@ -48,9 +47,8 @@ builder.Services.AddSingleton<IAuthProvider>(sp =>
         throw new InvalidOperationException("Database manager not found");
     }
 
-    return new AuthProvider(dbManager);
+    return new CourseProvider(dbManager);
 });
-
 builder.Services.AddSingleton<IUserProvider>(sp =>
 {
     IDbManager? dbManager = sp.GetService<IDbManager>();
@@ -61,6 +59,24 @@ builder.Services.AddSingleton<IUserProvider>(sp =>
 
     return new UserProvider(dbManager);
 });
+
+builder.Services.AddSingleton<IAuthProvider>(sp =>
+{
+    IDbManager? dbManager = sp.GetService<IDbManager>();
+    if (dbManager is null)
+    {
+        throw new InvalidOperationException("Database manager not found");
+    }
+    IUserProvider? userProvider = sp.GetService<IUserProvider>();
+    if (userProvider is null)
+    {
+        throw new InvalidOperationException("User provider not found");
+    }
+
+    return new AuthProvider(dbManager, userProvider);
+});
+
+
 
 builder.Services.AddTransient<IEmailSender>(sp =>
 {
