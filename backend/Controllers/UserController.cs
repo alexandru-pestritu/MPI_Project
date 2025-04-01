@@ -40,6 +40,8 @@ public class UserController : Controller
         return Ok(profile);
     }
     
+    
+    
     [HttpPut("profile")]
     public async Task<IActionResult> UpdateUserProfileAsync([FromBody] UserProfile profile)
     {
@@ -74,5 +76,18 @@ public class UserController : Controller
     {
         var students = await _userProvider.GetAllStudents();
         return Ok(students);
+    }
+    
+    [HttpGet]
+    [Route("get-user-profile/{userId}")]
+    public async Task<IActionResult> GetUserProfile(int userId)
+    {
+        var profile = await _userProvider.getUserProfileAsync(userId);
+        if (profile == null)
+        {
+            return NotFound("User profile not found.");
+        }
+
+        return Ok(profile);
     }
 }

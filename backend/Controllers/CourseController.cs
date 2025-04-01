@@ -164,7 +164,7 @@ public class CourseController : Controller
         }
         
         
-        return Ok("Students added to course successfully.");
+        return Ok();
     }
     
     [HttpPost]
@@ -204,7 +204,7 @@ public class CourseController : Controller
         }
         
         
-        return Ok("Students removed from course successfully.");
+        return Ok();
     }
     
     [HttpGet]
@@ -222,15 +222,36 @@ public class CourseController : Controller
             return BadRequest("Invalid user ID claim in the token.");
         }
         
-        if(User.FindFirst("Role")?.Value != "Teacher")
-        {
-            return Unauthorized("You are not authorized to view students in a course.");
-        }
-        
         
         var students = await _userProvider.GetStudentsInCourse(courseId);
         
         return Ok(students);
+    }
+    
+    [HttpGet]
+    [Route("get-course-by-id/{courseId}")]
+    public async Task<IActionResult> GetCourseById(int courseId)
+    {
+        var userIdClaim = User.FindFirst("UserId");
+        if (userIdClaim == null)
+        {
+            return Unauthorized("No user ID claim found in the token.");
+        }
+        
+        if (!int.TryParse(userIdClaim.Value, out var userId))
+        {
+            return BadRequest("Invalid user ID claim in the token.");
+        }
+        
+        
+        var course = await _courseProvider.GetCourseById(courseId);
+
+        if(course is null)
+        {
+            return NotFound("Course not found.");
+        }
+       
+        return Ok(course);
     }
     
     

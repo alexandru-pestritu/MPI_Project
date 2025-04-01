@@ -29,6 +29,12 @@ public class CourseProvider : ICourseProvider
         return await _manager.ReadListOfTypeAsync(query,ConvertCourse, new KeyValuePair<string, object>("Id", user.Id));
     }
 
+    public async Task<Course?> GetCourseById(int courseId)
+    {
+        string query = "SELECT * FROM Courses WHERE Id = @Id";
+        return  await _manager.ReadObjectOfTypeAsync(query, ConvertCourse, new KeyValuePair<string, object>("Id", courseId));
+    }
+
     public async Task<Course> AddCourse(Course course)
     {
         course.Id= await _manager.InsertAsyncWithReturn<int>("Courses", "Id",
