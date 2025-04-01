@@ -1,0 +1,116 @@
+<app-menu></app-menu>
+<div class="min-h-screen bg-gray-100 p-8 flex flex-col items-center">
+    <div class="w-full max-w-4xl">
+      <p-card class="shadow-md hover:shadow-lg transition-shadow rounded-md">
+        <ng-template pTemplate="header">
+          <h1 class="text-2xl mt-4 ml-4 font-bold">Course Details</h1>
+        </ng-template>
+  
+        <div class="p-4">
+          <div class="mb-2">
+            <span class="font-semibold">Name:</span>
+            <span class="ml-1">{{ course?.name }}</span>
+          </div>
+          <div class="mb-2">
+            <span class="font-semibold">Description:</span>
+            <span class="ml-1">{{ course?.description }}</span>
+          </div>
+          <div class="mb-2">
+            <span class="font-semibold">Teacher:</span>
+            <span class="ml-1">{{ teacherName }}</span>
+          </div>
+        </div>
+      </p-card>
+    </div>
+  
+    
+    <div class="w-full max-w-4xl mt-6">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xl font-semibold">Enrolled Students</h2>
+        <button
+          pButton
+          *ngIf="role=='Teacher'"
+          label="Add Students to Course"
+          icon="pi pi-plus"
+          class="p-button-sm"
+          (click)="openAddStudentDialog()"
+        ></button>
+      </div>
+  
+      <p-table
+        [value]="courseStudents"
+        class="shadow-md hover:shadow-lg transition-shadow rounded-md"
+        [paginator]="false"
+        data-cy="course-students-table"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Name</th>
+            
+            <th class="text-right">Actions</th>
+          </tr>
+        </ng-template>
+  
+        <ng-template pTemplate="body" let-student>
+          <tr>
+            <td>{{ student.firstName }} {{ student.lastName }}</td>
+            <td class="text-right">
+              <button
+                pButton
+                icon="pi pi-trash"
+                *ngIf="role=='Teacher'"
+                class="p-button-rounded p-button-text p-button-danger"
+                (click)="onRemoveStudent(student)"
+                data-cy="remove-student-btn"
+              ></button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  
+    
+    <p-dialog
+      header="Add Students"
+      [(visible)]="addStudentDialogVisible"
+      [modal]="true"
+      [style]="{ width: '450px', 'min-height': '450px', 'max-height': '80vh' }"
+      styleClass="p-fluid"
+    >
+      <ng-template pTemplate="content">
+        <div class="field">
+          <label for="selectedStudents">Select Student(s)</label>
+          
+          <p-multiSelect
+             id="selectedStudents"
+            [options]="availableStudents"
+            [(ngModel)]="selectedStudentIds"
+            optionLabel="fullName"  
+            optionValue="id"
+            [filter]="true"
+            defaultLabel="Choose student(s)"
+            display="chip"
+            [maxSelectedLabels]="3"
+            class="w-full mt-2"
+            >
+            </p-multiSelect>
+        </div>
+      </ng-template>
+  
+      <ng-template pTemplate="footer">
+        <p-button
+          label="Cancel"
+          icon="pi pi-times"
+          [text]="true"
+          (onClick)="closeAddStudentDialog()"
+        ></p-button>
+        <p-button
+          label="Add"
+          icon="pi pi-check"
+          (onClick)="onAddStudents()"
+          [disabled]="!selectedStudentIds || !selectedStudentIds.length"
+        ></p-button>
+      </ng-template>
+    </p-dialog>
+  </div>
+  
