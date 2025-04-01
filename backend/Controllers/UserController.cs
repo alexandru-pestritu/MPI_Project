@@ -67,4 +67,12 @@ public class UserController : Controller
 
         return Ok(updatedProfile);
     }
+    
+    [HttpGet]
+    [Route("get-all-students")]
+    public async Task<IActionResult> GetAllStudents()
+    {
+        var students = await _userProvider.GetAllStudents();
+        return Ok(students);
+    }
 }
