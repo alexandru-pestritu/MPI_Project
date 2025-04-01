@@ -1,4 +1,134 @@
 <app-menu></app-menu>
-<div class="flex items-center justify-center min-h-screen bg-gray-100">
-    
-</div>
+<div class="min-h-screen flex items-start justify-center bg-gray-100">
+    <div class="w-full m-3 p-8">
+  
+      <h1 class="text-3xl font-bold mb-6">Courses</h1>
+  
+      <div class="grid gap-6 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 w-full"  *ngIf="courses.length > 0; else noCoursesMessage">
+        
+        <div
+          *ngFor="let course of courses"
+          class="flex flex-col cursor-pointer justify-center items-center"
+        >
+          <p-card
+            class="w-full h-48 shadow-md hover:shadow-lg transition-shadow rounded-md"
+          >
+            <ng-template pTemplate="header">
+              <div *ngIf="role=='Teacher'" class="relative flex justify-center items-center">
+                <i
+                  class="pi pi-cog absolute top-0 right-0 m-3 text-xl cursor-pointer"
+                  (click)="onEditCourse(course)"
+                ></i>
+              </div>
+            </ng-template>
+  
+            <div class="text-center p-2" (click)="onSelectCourse(course)">
+              <p class="text-lg font-bold">{{ course.name }}</p>
+              <p class="text-gray-500 break-all">
+                {{ course.description }}
+              </p>
+            </div>
+          </p-card>
+        </div>
+  
+        
+        <div *ngIf="role=='Teacher'" class="flex flex-col cursor-pointer justify-center items-center">
+          <p-card
+            class="w-full h-48 shadow-md hover:shadow-lg transition-shadow rounded-md"
+          
+          >
+            <div class="text-center p-2 mt-2" (click)="onAddNewCourse()">
+              <i class="pi pi-plus text-2xl"></i>
+              <p class="text-lg font-bold">Add a new course</p>
+            </div>
+          </p-card>
+        </div>
+      </div>
+
+      <ng-template #noCoursesMessage>
+        <div class=" py-6 text-black text-lg" *ngIf="role == 'Student'">
+          No courses available. Please check back later.
+        </div>
+      </ng-template>
+  
+      
+      <p-dialog
+        [(visible)]="courseDialogVisible"
+        [style]="{ width: '600px' }"
+        [modal]="true"
+        header="{{ editingCourse.id ? 'Edit Course' : 'New Course' }}"
+        styleClass="p-fluid"
+      >
+        <ng-template pTemplate="content">
+          <div class="field">
+            <label for="course_name">Name</label>
+            <input
+              id="course_name"
+              type="text"
+              pInputText
+              [(ngModel)]="editingCourse.name"
+              class="mt-2 w-full"
+              required
+            />
+            <small
+              class="p-error pt-2"
+              *ngIf="submitted && !editingCourse.name"
+            >
+              Name is required.
+            </small>
+          </div>
+  
+          <div class="field mt-4">
+            <label for="description">Description</label>
+            <textarea
+              id="description"
+              pTextarea
+              [(ngModel)]="editingCourse.description"
+              class="mt-2 w-full"
+              required
+            ></textarea>
+            <small
+              class="p-error pt-2"
+              *ngIf="submitted && !editingCourse.description"
+            >
+              Description is required.
+            </small>
+          </div>
+        </ng-template>
+  
+        <ng-template pTemplate="footer">
+        
+          <p-button
+            *ngIf="editingCourse?.id"
+            label="Delete"
+            icon="pi pi-trash"
+           
+            severity="danger"
+            styleClass="mr-2"
+            (onClick)="onDeleteCourse()"
+            [disabled]="loading"
+          ></p-button>
+  
+        
+          <p-button
+            *ngIf="!editingCourse?.id"
+            label="Cancel"
+            icon="pi pi-times"
+            [text]="true"
+            (onClick)="hideDialog()"
+            [disabled]="loading"
+          ></p-button>
+  
+          <p-button
+            label="Save"
+            icon="pi pi-check"
+           
+            (onClick)="saveCourse()"
+            [disabled]="loading"
+            [loading]="loading"
+          ></p-button>
+        </ng-template>
+      </p-dialog>
+    </div>
+  </div>
+  

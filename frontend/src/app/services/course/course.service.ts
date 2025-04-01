@@ -25,7 +25,9 @@ export class CourseService {
       return this.httpService.put<Course>(`${this.endpoint}/edit-course`, course);
     }
 
-
+    getCourseById(courseId:number):Observable<Course>{
+      return this.httpService.get<Course>(`${this.endpoint}/get-course-by-id/${courseId}`);
+    }
 
     deleteCourse(courseId:number):Observable<any>{
       return this.httpService.delete<any>(`${this.endpoint}/delete-course/${courseId}`);

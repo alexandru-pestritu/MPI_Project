@@ -22,4 +22,8 @@ export class UserService {
   getAllStudents():Observable<UserProfile[]>{
     return this.httpService.get<UserProfile[]>(`${this.endpoint}/get-all-students`);
   }
+  getProfileById(userId:number): Observable<UserProfile> {
+    return this.httpService.get<UserProfile>(`${this.endpoint}/get-user-profile/${userId}`);
+  }
+
 }

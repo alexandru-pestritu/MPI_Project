@@ -7,6 +7,7 @@ import {ResetPasswordComponent} from './components/reset-password/reset-password
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { UserProfileComponent } from './components/user-profile/user-profile.component';
 import { AuthGuard } from './services/guards/auth-guard.service';
+import { CourseComponent } from './components/course/course.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -16,6 +17,7 @@ const routes: Routes = [
   {path: 'reset-password/:token', component:ResetPasswordComponent},
   {path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard]},
   {path: 'profile', component: UserProfileComponent, canActivate: [AuthGuard]},
+  {path: 'course/:courseId', component:CourseComponent,canActivate: [AuthGuard]},
   {path: '**', redirectTo: '/login', pathMatch: 'full' }
 ];
 

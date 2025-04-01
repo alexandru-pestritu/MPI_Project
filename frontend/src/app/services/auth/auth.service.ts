@@ -57,6 +57,29 @@ export class AuthService {
         return false;
       }
     }
+
+    getUserIdFromToken(): number | null {
+      const token = this.localStorageService.getItem("token");
+      if (!token) return null;
+    
+      try {
+        const { UserId } = jwtDecode<{ UserId: string }>(token);
+        return Number.parseInt(UserId);
+      } catch (e) {
+        return null;
+      }
+    }
+    getRoleFromToken(): string | null {
+      const token = this.localStorageService.getItem("token");
+      if (!token) return null;
+    
+      try {
+        const { Role } = jwtDecode<{ Role: string }>(token);
+        return Role;
+      } catch (e) {
+        return null;
+      }
+    }
     
     isLoggedIn(): boolean {
       return this.localStorageService.getItem('token') !== null && this.hasValidToken();
