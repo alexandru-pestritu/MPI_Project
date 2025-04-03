@@ -40,7 +40,10 @@ public class GradeProvider : IGradeProvider
         foreach (var grade in grades)
         {
             if (!IsGradeValueValid(grade.Value))
+            {
+                result.Add(null);
                 continue;
+            }
             int id = await _manager.InsertAsyncWithReturn<int>("Grades", "Id",
                 new KeyValuePair<string, object>("StudentId", grade.StudentId),
                 new KeyValuePair<string, object>("CourseId", grade.CourseId),
