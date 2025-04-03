@@ -34,6 +34,7 @@ import {TextareaModule} from 'primeng/textarea';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { CourseComponent } from './components/course/course.component';
+import { GradesComponent } from './components/grades/grades.component';
 
 @NgModule({
   declarations: [
@@ -45,7 +46,8 @@ import { CourseComponent } from './components/course/course.component';
     UserProfileComponent,
     MenuComponent,
     DashboardComponent,
-    CourseComponent
+    CourseComponent,
+    GradesComponent
   ],
   imports: [
     BrowserModule,

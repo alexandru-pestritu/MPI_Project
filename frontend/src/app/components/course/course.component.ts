@@ -88,9 +88,10 @@ export class CourseComponent implements OnInit {
          
           this.loadStudentsInCourse();
 
-         
+         if(this.role === 'Teacher') {
           this.loadGrades();
         }
+      }
       },
       error: (err) => {
         console.error('Error loading course', err);

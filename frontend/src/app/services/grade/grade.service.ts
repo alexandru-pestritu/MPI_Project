@@ -26,4 +26,8 @@ export class GradeService {
   deleteGrade(gradeId:number):Observable<any>{
         return this.httpService.delete<any>(`${this.endpoint}/delete-grade/${gradeId}`);
       }
+
+  getStudentGrades():Observable<Grade[]>{
+        return this.httpService.get<Grade[]>(`${this.endpoint}/get-grades-by-student`);
+      }
 }

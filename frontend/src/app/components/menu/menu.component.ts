@@ -17,7 +17,7 @@ export class MenuComponent {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
   ) {}
 
   ngOnInit(): void {
@@ -29,10 +29,18 @@ export class MenuComponent {
   }
 
   initMenu() {
+    if(this.authService.getRoleFromToken() === 'Teacher') {
     this.menuItems = [
+      { label: 'Courses', icon: 'pi pi-book', routerLink: ['/courses'] },
+    ];
+  }
+    else
+    {
+      this.menuItems = [
       { label: 'Courses', icon: 'pi pi-book', routerLink: ['/courses'] },
       { label: 'Grades', icon: 'pi pi-chart-line', routerLink: ['/grades'] }
     ];
+  }
   }
 
   initUserMenu() {
