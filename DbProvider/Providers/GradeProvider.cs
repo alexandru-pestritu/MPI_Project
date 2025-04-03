@@ -40,7 +40,10 @@ public class GradeProvider : IGradeProvider
         foreach (var grade in grades)
         {
             if (!IsGradeValueValid(grade.Value))
+            {
+                result.Add(null);
                 continue;
+            }
             int id = await _manager.InsertAsyncWithReturn<int>("Grades", "Id",
                 new KeyValuePair<string, object>("StudentId", grade.StudentId),
                 new KeyValuePair<string, object>("CourseId", grade.CourseId),
@@ -56,6 +59,12 @@ public class GradeProvider : IGradeProvider
     public async Task<bool> DeleteGrade(int gradeId)
     {
         return await _manager.DeleteAsync("Grades", new KeyValuePair<string, object>("Id", gradeId));
+    }
+
+    public async Task<List<Grade>?> GetGradesByStudent(int studentId)
+    {
+        string query = "SELECT * FROM Grades WHERE StudentId = @StudentId";
+        return await _manager.ReadListOfTypeAsync(query, ConvertGrade, new KeyValuePair<string, object>("StudentId", studentId));
     }
 
     private bool IsGradeValueValid(int value)

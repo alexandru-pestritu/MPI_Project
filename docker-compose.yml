@@ -38,19 +38,19 @@ services:
       custom_network:
         ipv4_address: 172.20.100.3
         
-  # frontend:
-  #   image: frontend
-  #   container_name: frontend
-  #   depends_on:
-  #     - backend
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - '4200:4200'
-  #   networks:
-  #     custom_network:
-  #       ipv4_address: 172.20.100.4
+  frontend:
+    image: frontend
+    container_name: frontend
+    depends_on:
+      - backend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - '4200:4200'
+    networks:
+      custom_network:
+        ipv4_address: 172.20.100.4
 
 
 networks:

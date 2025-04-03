@@ -6,253 +6,185 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers;
 
+/// <summary>
+/// Handles all course-related operations, including course management and student enrollment.
+/// </summary>
 [ApiController]
 [Authorize]
 [Route("/api/course")]
-
 public class CourseController : Controller
 {
     private readonly ICourseProvider _courseProvider;
     private readonly IUserProvider _userProvider;
-    
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CourseController"/> class.
+    /// </summary>
+    /// <param name="courseProvider">The course provider service.</param>
+    /// <param name="userProvider">The user provider service.</param>
     public CourseController(ICourseProvider courseProvider, IUserProvider userProvider)
     {
         _courseProvider = courseProvider;
         _userProvider = userProvider;
     }
-    
-    
-    [HttpGet]
-    [Route("get-courses")]
+
+    /// <summary>
+    /// Retrieves all courses for the authenticated user.
+    /// </summary>
+    /// <returns>A list of courses accessible to the user.</returns>
+    [HttpGet("get-courses")]
     public async Task<IActionResult> GetCourses()
     {
-        var userIdClaim = User.FindFirst("UserId");
-        if (userIdClaim == null)
-        {
-            return Unauthorized("No user ID claim found in the token.");
-        }
-        
-        if (!int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return BadRequest("Invalid user ID claim in the token.");
-        }
-        User? user = await _userProvider.getUserByIdAsync(userId);
-        if (user is null)
-        {
-            return BadRequest("User not found.");
-        }
-        
+        var user = await GetCurrentUserAsync();
+        if (user == null) return Unauthorized("Invalid user token.");
+
         var courses = await _courseProvider.GetCourses(user);
         return Ok(courses);
     }
-    
-    
-    [HttpPost]
-    [Route("add-course")]
+
+    /// <summary>
+    /// Adds a new course for the authenticated teacher.
+    /// </summary>
+    /// <param name="course">The course to be added.</param>
+    /// <returns>The added course.</returns>
+    [HttpPost("add-course")]
     public async Task<IActionResult> AddCourse([FromBody] Course course)
     {
-        var userIdClaim = User.FindFirst("UserId");
-        if (userIdClaim == null)
-        {
-            return Unauthorized("No user ID claim found in the token.");
-        }
-        
-        if (!int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return BadRequest("Invalid user ID claim in the token.");
-        }
-        
-        if(User.FindFirst("Role")?.Value != "Teacher")
-        {
-            return Unauthorized("You are not authorized to add a course.");
-        }
-        
-        course.TeacherId = userId;
-        
+        var userId = GetUserId();
+        if (userId == null || !IsTeacher()) return Unauthorized("You are not authorized to add a course.");
+
+        course.TeacherId = userId.Value;
         var addedCourse = await _courseProvider.AddCourse(course);
         return Ok(addedCourse);
     }
-    
-    [HttpPut]
-    [Route("edit-course")]
+
+    /// <summary>
+    /// Edits an existing course if owned by the authenticated teacher.
+    /// </summary>
+    /// <param name="course">The updated course details.</param>
+    /// <returns>An Ok result if successful; otherwise, BadRequest.</returns>
+    [HttpPut("edit-course")]
     public async Task<IActionResult> EditCourse([FromBody] Course course)
     {
-        var userIdClaim = User.FindFirst("UserId");
-        if (userIdClaim == null)
-        {
-            return Unauthorized("No user ID claim found in the token.");
-        }
-        
-        if (!int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return BadRequest("Invalid user ID claim in the token.");
-        }
-        
-        if(User.FindFirst("Role")?.Value != "Teacher")
-        {
-            return Unauthorized("You are not authorized to edit a course.");
-        }
-        
-        course.TeacherId = userId;
-        
+        var userId = GetUserId();
+        if (userId == null || !IsTeacher()) return Unauthorized("You are not authorized to edit a course.");
+
+        course.TeacherId = userId.Value;
         var response = await _courseProvider.EditCourse(course);
-        
-        if (!response.IsSuccess)
-        {
-            return BadRequest("Failed to edit course.");
-        }
-        return Ok();
+        return response.IsSuccess ? Ok() : BadRequest("Failed to edit course.");
     }
-    
-    [HttpDelete]
-    [Route("delete-course/{courseId}")]
+
+    /// <summary>
+    /// Deletes a course owned by the authenticated teacher.
+    /// </summary>
+    /// <param name="courseId">The ID of the course to delete.</param>
+    /// <returns>An Ok result if successful; otherwise, BadRequest.</returns>
+    [HttpDelete("delete-course/{courseId}")]
     public async Task<IActionResult> DeleteCourse(int courseId)
     {
-        var userIdClaim = User.FindFirst("UserId");
-        if (userIdClaim == null)
-        {
-            return Unauthorized("No user ID claim found in the token.");
-        }
-        
-        if (!int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return BadRequest("Invalid user ID claim in the token.");
-        }
-        
-        if(User.FindFirst("Role")?.Value != "Teacher")
-        {
-            return Unauthorized("You are not authorized to delete a course.");
-        }
-        
+        var userId = GetUserId();
+        if (userId == null || !IsTeacher()) return Unauthorized("You are not authorized to delete a course.");
+
         var response = await _courseProvider.DeleteCourse(courseId);
-        if (!response.IsSuccess)
-        {
-            return BadRequest("Failed to delete course.");
-        }
-        return Ok();
+        return response.IsSuccess ? Ok() : BadRequest("Failed to delete course.");
     }
-    
-    [HttpPost]
-    [Route("add-student-to-course")]
+
+    /// <summary>
+    /// Adds students to a course owned by the authenticated teacher.
+    /// </summary>
+    /// <param name="request">The request containing course and student IDs.</param>
+    /// <returns>An Ok result if successful.</returns>
+    [HttpPost("add-student-to-course")]
     public async Task<IActionResult> AddStudentToCourse([FromBody] AddStudentToCourseRequest request)
     {
-        var userIdClaim = User.FindFirst("UserId");
-        if (userIdClaim == null)
-        {
-            return Unauthorized("No user ID claim found in the token.");
-        }
-        
-        if (!int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return BadRequest("Invalid user ID claim in the token.");
-        }
-        
-        if(User.FindFirst("Role")?.Value != "Teacher")
-        {
-            return Unauthorized("You are not authorized to add a student to a course.");
-        }
-        
-        int teacherId = await _courseProvider.GetTeacherId(request.CourseId);
+        var userId = GetUserId();
+        if (userId == null || !IsTeacher()) return Unauthorized("You are not authorized.");
 
-        if (teacherId != userId)
+        var teacherId = await _courseProvider.GetTeacherId(request.CourseId);
+        if (teacherId != userId) return Unauthorized("Not authorized to manage this course.");
+
+        foreach (int studentId in request.StudentIds)
         {
-            return Unauthorized("Not authorized to add a student to this course.");
+            await _courseProvider.AddStudentToCourse(request.CourseId, studentId);
         }
-        foreach(int studentId in request.StudentIds)
-        {
-            var response = await _courseProvider.AddStudentToCourse(request.CourseId, studentId);
-        }
-        
-        
+
         return Ok();
     }
-    
-    [HttpPost]
-    [Route("remove-student-from-course")]
+
+    /// <summary>
+    /// Removes students from a course owned by the authenticated teacher.
+    /// </summary>
+    /// <param name="request">The request containing course and student IDs.</param>
+    /// <returns>An Ok result if successful; otherwise, BadRequest.</returns>
+    [HttpPost("remove-student-from-course")]
     public async Task<IActionResult> RemoveStudentFromCourse([FromBody] RemoveStudentFromCourseRequest request)
     {
-        var userIdClaim = User.FindFirst("UserId");
-        if (userIdClaim == null)
-        {
-            return Unauthorized("No user ID claim found in the token.");
-        }
-        
-        if (!int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return BadRequest("Invalid user ID claim in the token.");
-        }
-        
-        if(User.FindFirst("Role")?.Value != "Teacher")
-        {
-            return Unauthorized("You are not authorized to remove a student from a course.");
-        }
-        
-        int teacherId = await _courseProvider.GetTeacherId(request.CourseId);
+        var userId = GetUserId();
+        if (userId == null || !IsTeacher()) return Unauthorized("You are not authorized.");
 
-        if (teacherId != userId)
-        {
-            return Unauthorized("Not authorized to remove a student from this course.");
-        }
-        
-        foreach(int studentId in request.StudentIds)
+        var teacherId = await _courseProvider.GetTeacherId(request.CourseId);
+        if (teacherId != userId) return Unauthorized("Not authorized to manage this course.");
+
+        foreach (int studentId in request.StudentIds)
         {
             var response = await _courseProvider.RemoveStudentFromCourse(request.CourseId, studentId);
             if (!response.IsSuccess)
-            {
                 return BadRequest("Failed to remove student from course.");
-            }
         }
-        
-        
+
         return Ok();
     }
-    
-    [HttpGet]
-    [Route("get-students-in-course/{courseId}")]
+
+    /// <summary>
+    /// Retrieves students enrolled in a specific course.
+    /// </summary>
+    /// <param name="courseId">The ID of the course.</param>
+    /// <returns>A list of enrolled students.</returns>
+    [HttpGet("get-students-in-course/{courseId}")]
     public async Task<IActionResult> GetStudentsInCourse(int courseId)
     {
-        var userIdClaim = User.FindFirst("UserId");
-        if (userIdClaim == null)
-        {
-            return Unauthorized("No user ID claim found in the token.");
-        }
-        
-        if (!int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return BadRequest("Invalid user ID claim in the token.");
-        }
-        
-        
+        var userId = GetUserId();
+        if (userId == null) return Unauthorized("Invalid user token.");
+
         var students = await _userProvider.GetStudentsInCourse(courseId);
-        
         return Ok(students);
     }
-    
-    [HttpGet]
-    [Route("get-course-by-id/{courseId}")]
+
+    /// <summary>
+    /// Retrieves a course by its ID.
+    /// </summary>
+    /// <param name="courseId">The ID of the course.</param>
+    /// <returns>The course if found; otherwise, NotFound.</returns>
+    [HttpGet("get-course-by-id/{courseId}")]
     public async Task<IActionResult> GetCourseById(int courseId)
     {
-        var userIdClaim = User.FindFirst("UserId");
-        if (userIdClaim == null)
-        {
-            return Unauthorized("No user ID claim found in the token.");
-        }
-        
-        if (!int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return BadRequest("Invalid user ID claim in the token.");
-        }
-        
-        
-        var course = await _courseProvider.GetCourseById(courseId);
+        var userId = GetUserId();
+        if (userId == null) return Unauthorized("Invalid user token.");
 
-        if(course is null)
-        {
-            return NotFound("Course not found.");
-        }
-       
-        return Ok(course);
+        var course = await _courseProvider.GetCourseById(courseId);
+        return course is null ? NotFound("Course not found.") : Ok(course);
     }
-    
-    
+
+    /// <summary>
+    /// Extracts the user ID from the current token.
+    /// </summary>
+    private int? GetUserId()
+    {
+        var userIdClaim = User.FindFirst("UserId");
+        return int.TryParse(userIdClaim?.Value, out var id) ? id : null;
+    }
+
+    /// <summary>
+    /// Determines if the current user has a "Teacher" role.
+    /// </summary>
+    private bool IsTeacher() => User.FindFirst("Role")?.Value == "Teacher";
+
+    /// <summary>
+    /// Retrieves the full user object for the current user.
+    /// </summary>
+    private async Task<User?> GetCurrentUserAsync()
+    {
+        var userId = GetUserId();
+        return userId.HasValue ? await _userProvider.getUserByIdAsync(userId.Value) : null;
+    }
 }

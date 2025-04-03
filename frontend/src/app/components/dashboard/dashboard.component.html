@@ -4,13 +4,14 @@
   
       <h1 class="text-3xl font-bold mb-6">Courses</h1>
   
-      <div class="grid gap-6 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 w-full"  *ngIf="courses.length > 0; else noCoursesMessage">
+      <div class="grid gap-6 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 w-full">
         
         <div
           *ngFor="let course of courses"
           class="flex flex-col cursor-pointer justify-center items-center"
         >
           <p-card
+          
             class="w-full h-48 shadow-md hover:shadow-lg transition-shadow rounded-md"
           >
             <ng-template pTemplate="header">
@@ -21,13 +22,15 @@
                 ></i>
               </div>
             </ng-template>
-  
+            
+            <div class="p-11">
             <div class="text-center p-2" (click)="onSelectCourse(course)">
               <p class="text-lg font-bold">{{ course.name }}</p>
               <p class="text-gray-500 break-all">
                 {{ course.description }}
               </p>
             </div>
+          </div>
           </p-card>
         </div>
   
@@ -37,19 +40,19 @@
             class="w-full h-48 shadow-md hover:shadow-lg transition-shadow rounded-md"
           
           >
+          <div class="p-10">
             <div class="text-center p-2 mt-2" (click)="onAddNewCourse()">
               <i class="pi pi-plus text-2xl"></i>
               <p class="text-lg font-bold">Add a new course</p>
             </div>
+          </div>
           </p-card>
         </div>
-      </div>
 
-      <ng-template #noCoursesMessage>
-        <div class=" py-6 text-black text-lg" *ngIf="role == 'Student'">
+        <div class=" py-6 text-black text-lg" *ngIf="role == 'Student' && courses.length == 0">
           No courses available. Please check back later.
         </div>
-      </ng-template>
+      </div>
   
       
       <p-dialog

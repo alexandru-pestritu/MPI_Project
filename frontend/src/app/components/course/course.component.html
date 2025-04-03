@@ -1,6 +1,5 @@
 <app-menu></app-menu>
 <div class="min-h-screen bg-gray-100 p-8 flex flex-col items-center">
-  <!-- Course info section -->
   <div class="w-full max-w-4xl">
     <p-card class="shadow-md hover:shadow-lg transition-shadow rounded-md">
       <ng-template pTemplate="header">
@@ -60,8 +59,8 @@
       <ng-template pTemplate="header">
         <tr>
           <th>Name</th>
-          <th>Latest Grade</th>
-          <th class="text-right">Actions</th>
+          <th *ngIf="role == 'Teacher'">Latest Grade</th>
+          <th *ngIf="role == 'Teacher'" class="text-right">Actions</th>
         </tr>
       </ng-template>
 
@@ -69,13 +68,13 @@
         <tr>
           <td>{{ student.firstName }} {{ student.lastName }}</td>
           
-          <td>
+          <td *ngIf="role == 'Teacher'">
             <span *ngIf="getLatestGrade(student.id) !== null">
               {{ getLatestGrade(student.id) }}
             </span>
             <span *ngIf="getLatestGrade(student.id) === null">-</span>
           </td>
-          <td class="text-right">
+          <td *ngIf="role == 'Teacher'" class="text-right">
            
             <button
               pButton

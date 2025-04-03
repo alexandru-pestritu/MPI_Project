@@ -5,119 +5,137 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers;
 
-
-
+/// <summary>
+/// Controller for managing grade-related operations such as viewing, adding, editing, and deleting grades.
+/// </summary>
 [ApiController]
 [Authorize]
 [Route("/api/grade")]
 public class GradeController : Controller
 {
     private readonly IGradeProvider _gradeProvider;
-    
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GradeController"/> class.
+    /// </summary>
+    /// <param name="gradeProvider">The grade provider service.</param>
     public GradeController(IGradeProvider gradeProvider)
     {
         _gradeProvider = gradeProvider;
     }
-    
-    [HttpGet]
-    [Route("get-grades/{courseId}")]
+
+    /// <summary>
+    /// Retrieves all grades for a given course. Only accessible by teachers.
+    /// </summary>
+    /// <param name="courseId">The ID of the course.</param>
+    /// <returns>A list of grades if authorized; otherwise, an error response.</returns>
+    [HttpGet("get-grades/{courseId}")]
     public async Task<IActionResult> GetGrades(int courseId)
     {
-        var userIdClaim = User.FindFirst("UserId");
-        if (userIdClaim == null)
-        {
-            return Unauthorized("No user ID claim found in the token.");
-        }
-        if (!int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return BadRequest("Invalid user ID claim in the token.");
-        }
-        
-        if(User.FindFirst("Role")?.Value != "Teacher")
-        {
-            return Unauthorized("You are not authorized to add a course.");
-        }
-        
+        if (!TryValidateTeacher(out var errorResult)) return errorResult;
+
         var grades = await _gradeProvider.GetGrades(courseId);
         return Ok(grades);
     }
-    
-    
-    [HttpPost]
-    [Route("add-grades")]
+
+    /// <summary>
+    /// Retrieves all grades for the authenticated student.
+    /// </summary>
+    /// <returns>A list of grades belonging to the student.</returns>
+    [HttpGet("get-grades-by-student")]
+    public async Task<IActionResult> GetGradesByStudent()
+    {
+        if (!TryValidateStudent(out var userId, out var errorResult)) return errorResult;
+
+        var grades = await _gradeProvider.GetGradesByStudent(userId);
+        return Ok(grades);
+    }
+
+    /// <summary>
+    /// Adds a list of grades to a course. Only accessible by teachers.
+    /// </summary>
+    /// <param name="grades">The list of grades to add.</param>
+    /// <returns>The added grades or an error response.</returns>
+    [HttpPost("add-grades")]
     public async Task<IActionResult> AddGrades([FromBody] List<Grade> grades)
     {
-        var userIdClaim = User.FindFirst("UserId");
-        if (userIdClaim == null)
-        {
-            return Unauthorized("No user ID claim found in the token.");
-        }
-        if (!int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return BadRequest("Invalid user ID claim in the token.");
-        }
-        
-        if(User.FindFirst("Role")?.Value != "Teacher")
-        {
-            return Unauthorized("You are not authorized to add a course.");
-        }
-        
+        if (!TryValidateTeacher(out var errorResult)) return errorResult;
+
         var addedGrades = await _gradeProvider.AddGrades(grades);
         return Ok(addedGrades);
     }
-    
-    [HttpPut]
-    [Route("edit-grade")]
+
+    /// <summary>
+    /// Edits a specific grade. Only accessible by teachers.
+    /// </summary>
+    /// <param name="grade">The grade object containing updated information.</param>
+    /// <returns>An Ok result if successful; otherwise, BadRequest.</returns>
+    [HttpPut("edit-grade")]
     public async Task<IActionResult> EditGrade([FromBody] Grade grade)
     {
-        var userIdClaim = User.FindFirst("UserId");
-        if (userIdClaim == null)
-        {
-            return Unauthorized("No user ID claim found in the token.");
-        }
-        if (!int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return BadRequest("Invalid user ID claim in the token.");
-        }
-        
-        if(User.FindFirst("Role")?.Value != "Teacher")
-        {
-            return Unauthorized("You are not authorized to add a course.");
-        }
-        
+        if (!TryValidateTeacher(out var errorResult)) return errorResult;
+
         var result = await _gradeProvider.EditGrade(grade);
-        if (!result)
-        {
-            return BadRequest("Failed to edit grade.");
-        }
-        return Ok();
+        return result ? Ok() : BadRequest("Failed to edit grade.");
     }
-    
-    [HttpDelete]
-    [Route("delete-grade/{gradeId}")]
+
+    /// <summary>
+    /// Deletes a specific grade by ID. Only accessible by teachers.
+    /// </summary>
+    /// <param name="gradeId">The ID of the grade to delete.</param>
+    /// <returns>An Ok result if successful; otherwise, BadRequest.</returns>
+    [HttpDelete("delete-grade/{gradeId}")]
     public async Task<IActionResult> DeleteGrade(int gradeId)
     {
-        var userIdClaim = User.FindFirst("UserId");
-        if (userIdClaim == null)
-        {
-            return Unauthorized("No user ID claim found in the token.");
-        }
-        if (!int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return BadRequest("Invalid user ID claim in the token.");
-        }
-        
-        if(User.FindFirst("Role")?.Value != "Teacher")
-        {
-            return Unauthorized("You are not authorized to add a course.");
-        }
-        
+        if (!TryValidateTeacher(out var errorResult)) return errorResult;
+
         var result = await _gradeProvider.DeleteGrade(gradeId);
-        if (!result)
-        {
-            return BadRequest("Failed to delete grade.");
-        }
-        return Ok();
+        return result ? Ok() : BadRequest("Failed to delete grade.");
     }
-    
+
+    /// <summary>
+    /// Validates that the current user has a "Teacher" role.
+    /// </summary>
+    private bool TryValidateTeacher(out IActionResult errorResult)
+    {
+        var userIdClaim = User.FindFirst("UserId");
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out _))
+        {
+            errorResult = BadRequest("Invalid or missing user ID claim.");
+            return false;
+        }
+
+        if (User.FindFirst("Role")?.Value != "Teacher")
+        {
+            errorResult = Unauthorized("You are not authorized to perform this action.");
+            return false;
+        }
+
+        errorResult = null!;
+        return true;
+    }
+
+    /// <summary>
+    /// Validates that the current user is a "Student" and extracts their user ID.
+    /// </summary>
+    private bool TryValidateStudent(out int userId, out IActionResult errorResult)
+    {
+        userId = 0;
+
+        var userIdClaim = User.FindFirst("UserId");
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out userId))
+        {
+            errorResult = BadRequest("Invalid or missing user ID claim.");
+            return false;
+        }
+
+        if (User.FindFirst("Role")?.Value != "Student")
+        {
+            errorResult = Unauthorized("You are not authorized to view grades.");
+            return false;
+        }
+
+        errorResult = null!;
+        return true;
+    }
 }
