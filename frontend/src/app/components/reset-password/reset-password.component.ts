@@ -4,6 +4,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 import { NotificationService } from '../../services/notification/notification.service';
 
+/**
+ * Component responsible for handling the password reset process.
+ */
 @Component({
   selector: 'app-reset-password',
   templateUrl: './reset-password.component.html',
@@ -11,9 +14,25 @@ import { NotificationService } from '../../services/notification/notification.se
   standalone: false
 })
 export class ResetPasswordComponent implements OnInit {
+
+  /**
+   * Reactive form group for resetting the password.
+   */
   resetPasswordForm: FormGroup;
+
+  /**
+   * The password reset token retrieved from the route.
+   */
   token: string = '';
 
+  /**
+   * Initializes the component and builds the reset password form.
+   * @param fb FormBuilder for constructing the form.
+   * @param route ActivatedRoute for accessing route parameters.
+   * @param authService Service for handling password reset requests.
+   * @param router Angular Router for navigation.
+   * @param notificationService Service for displaying notifications.
+   */
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
@@ -27,10 +46,19 @@ export class ResetPasswordComponent implements OnInit {
     });
   }
 
+  /**
+   * Lifecycle hook that runs on component initialization.
+   * Retrieves the reset token from the route parameters.
+   */
   ngOnInit(): void {
     this.token = this.route.snapshot.paramMap.get('token') || '';
   }
 
+  /**
+   * Submits the reset password form.
+   * Validates password match and triggers password reset.
+   * Displays appropriate notifications based on success or failure.
+   */
   onSubmit(): void {
     if (this.resetPasswordForm.valid) {
       const { password, confirmPassword } = this.resetPasswordForm.value;

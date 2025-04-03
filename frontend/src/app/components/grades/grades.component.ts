@@ -3,6 +3,9 @@ import { GradeService } from '../../services/grade/grade.service';
 import { NotificationService } from '../../services/notification/notification.service';
 import { Grade } from '../../models/grade';
 
+/**
+ * Component responsible for displaying the grades of the currently logged-in student.
+ */
 @Component({
   selector: 'app-grades',
   standalone: false,
@@ -10,17 +13,33 @@ import { Grade } from '../../models/grade';
   styleUrl: './grades.component.css'
 })
 export class GradesComponent {
+
+  /**
+   * Array of grades to be displayed.
+   */
   grades: Grade[] = [];
 
+  /**
+   * Initializes the component with necessary services.
+   * @param gradeService Service for retrieving student grades.
+   * @param notificationService Service for displaying error notifications.
+   */
   constructor(
     private gradeService: GradeService,
     private notificationService: NotificationService
   ) {}
 
+  /**
+   * Lifecycle hook that triggers grade loading on component initialization.
+   */
   ngOnInit(): void {
     this.loadStudentGrades();
   }
 
+  /**
+   * Loads the grades for the currently logged-in student.
+   * Updates the `grades` array or displays an error notification on failure.
+   */
   loadStudentGrades(): void {
     this.gradeService.getStudentGrades().subscribe({
       next: (fetchedGrades) => {

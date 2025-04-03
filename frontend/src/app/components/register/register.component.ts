@@ -4,6 +4,9 @@ import { Router } from '@angular/router';
 import { NotificationService } from '../../services/notification/notification.service';
 import { AuthService } from '../../services/auth/auth.service';
 
+/**
+ * Component responsible for handling user registration.
+ */
 @Component({
   selector: 'app-register',
   standalone: false,
@@ -11,12 +14,27 @@ import { AuthService } from '../../services/auth/auth.service';
   styleUrl: './register.component.css'
 })
 export class RegisterComponent {
+
+  /**
+   * Reactive form group for user registration.
+   */
   registerForm: FormGroup;
+
+  /**
+   * Available user roles for selection.
+   */
   roles = [
     { label: 'Student', value: 0 },
     { label: 'Teacher', value: 1 }
   ];
 
+  /**
+   * Initializes the register component and builds the registration form.
+   * @param fb FormBuilder service to create the form.
+   * @param authService Service for handling registration logic.
+   * @param router Angular Router used for navigation after successful registration.
+   * @param notificationService Service for displaying notifications.
+   */
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
@@ -32,6 +50,11 @@ export class RegisterComponent {
     });
   }
 
+  /**
+   * Submits the registration form.
+   * On success, shows a success message and navigates to the login page.
+   * On failure, shows an error notification.
+   */
   onSubmit(): void {
     if (this.registerForm.valid) {
       const { username, email, password, confirmPassword, role } = this.registerForm.value;
@@ -41,7 +64,7 @@ export class RegisterComponent {
           this.notificationService.showSuccess('Success', 'Registration successful!');
           this.router.navigate(['/login']);
         },
-        error: (error) => {
+        error: () => {
           this.notificationService.showError('Error', 'Registration failed. Please try again.');
         }
       });
