@@ -1,116 +1,332 @@
 <app-menu></app-menu>
 <div class="min-h-screen bg-gray-100 p-8 flex flex-col items-center">
-    <div class="w-full max-w-4xl">
-      <p-card class="shadow-md hover:shadow-lg transition-shadow rounded-md">
-        <ng-template pTemplate="header">
-          <h1 class="text-2xl mt-4 ml-4 font-bold">Course Details</h1>
-        </ng-template>
-  
-        <div class="p-4">
-          <div class="mb-2">
-            <span class="font-semibold">Name:</span>
-            <span class="ml-1">{{ course?.name }}</span>
-          </div>
-          <div class="mb-2">
-            <span class="font-semibold">Description:</span>
-            <span class="ml-1">{{ course?.description }}</span>
-          </div>
-          <div class="mb-2">
-            <span class="font-semibold">Teacher:</span>
-            <span class="ml-1">{{ teacherName }}</span>
-          </div>
+  <!-- Course info section -->
+  <div class="w-full max-w-4xl">
+    <p-card class="shadow-md hover:shadow-lg transition-shadow rounded-md">
+      <ng-template pTemplate="header">
+        <h1 class="text-2xl mt-4 ml-4 font-bold">Course Details</h1>
+      </ng-template>
+
+      <div class="p-4">
+        <div class="mb-2">
+          <span class="font-semibold">Name:</span>
+          <span class="ml-1">{{ course?.name }}</span>
         </div>
-      </p-card>
-    </div>
+        <div class="mb-2">
+          <span class="font-semibold">Description:</span>
+          <span class="ml-1">{{ course?.description }}</span>
+        </div>
+        <div class="mb-2">
+          <span class="font-semibold">Teacher:</span>
+          <span class="ml-1">{{ teacherName }}</span>
+        </div>
+      </div>
+    </p-card>
+  </div>
+
+ 
+  <div class="w-full max-w-4xl mt-6">
+    <div class="flex justify-between items-center mb-2">
+      <h2 class="text-xl font-semibold">Enrolled Students</h2>
+
   
-    
-    <div class="w-full max-w-4xl mt-6">
-      <div class="flex justify-between items-center mb-2">
-        <h2 class="text-xl font-semibold">Enrolled Students</h2>
+      <div class="flex space-x-2" *ngIf="role === 'Teacher'">
+        
         <button
           pButton
-          *ngIf="role=='Teacher'"
           label="Add Students to Course"
-          icon="pi pi-plus"
+          icon="pi pi-user-plus"
           class="p-button-sm"
           (click)="openAddStudentDialog()"
         ></button>
+
+        
+        <button
+          pButton
+          label="Add Grades (Multiple)"
+          icon="pi pi-plus"
+          class="p-button-sm"
+          (click)="openAddMultipleGradesDialog()"
+        ></button>
       </div>
+    </div>
+
+    <p-table
+      [value]="courseStudents"
+      class="shadow-md hover:shadow-lg transition-shadow rounded-md"
+      [paginator]="false"
+      data-cy="course-students-table"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Name</th>
+          <th>Latest Grade</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-student>
+        <tr>
+          <td>{{ student.firstName }} {{ student.lastName }}</td>
+          
+          <td>
+            <span *ngIf="getLatestGrade(student.id) !== null">
+              {{ getLatestGrade(student.id) }}
+            </span>
+            <span *ngIf="getLatestGrade(student.id) === null">-</span>
+          </td>
+          <td class="text-right">
+           
+            <button
+              pButton
+              icon="pi pi-pencil"
+              *ngIf="role === 'Teacher'"
+              class="p-button-rounded p-button-text p-button-warning mr-2"
+              (click)="openManageGradesDialog(student)"
+              title="Manage grades"
+            ></button>
+
+            
+            <button
+              pButton
+              icon="pi pi-trash"
+              *ngIf="role === 'Teacher'"
+              class="p-button-rounded p-button-text p-button-danger"
+              (click)="onRemoveStudent(student)"
+              data-cy="remove-student-btn"
+              title="Remove student from course"
+            ></button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+
+  <p-dialog
+    header="Add Students"
+    [(visible)]="addStudentDialogVisible"
+    [modal]="true"
+    [style]="{ width: '450px', 'min-height': '450px', 'max-height': '80vh' }"
+    styleClass="p-fluid"
+  >
+    <ng-template pTemplate="content">
+      <div class="field">
+        <label for="selectedStudents">Select Student(s)</label>
+
+        <p-multiSelect
+          id="selectedStudents"
+          [options]="availableStudents"
+          [(ngModel)]="selectedStudentIds"
+          optionLabel="fullName"
+          optionValue="id"
+          [filter]="true"
+          defaultLabel="Choose student(s)"
+          display="chip"
+          [maxSelectedLabels]="3"
+          class="w-full mt-2"
+        >
+        </p-multiSelect>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancel"
+        icon="pi pi-times"
+        [text]="true"
+        (click)="closeAddStudentDialog()"
+      ></p-button>
+      <p-button
+        label="Add"
+        icon="pi pi-check"
+        (click)="onAddStudents()"
+        [disabled]="!selectedStudentIds || !selectedStudentIds.length"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
+
   
+  <p-dialog
+    header="Add Grades (Multiple)"
+    [(visible)]="addMultipleGradesDialogVisible"
+    [modal]="true"
+    [style]="{ width: '450px' }"
+    styleClass="p-fluid"
+  >
+    <ng-template pTemplate="content">
+      <div class="field">
+        <label for="multiSelectStudents">Select Student(s)</label>
+        <p-multiSelect
+          id="multiSelectStudents"
+          [options]="courseStudents"
+          [(ngModel)]="selectedStudentsForGrades"
+          optionLabel="firstName"  
+          optionValue="id"
+          [filter]="true"
+          defaultLabel="Choose student(s)"
+          display="chip"
+          [maxSelectedLabels]="3"
+          class="w-full mt-2"
+        >
+        </p-multiSelect>
+      </div>
+
+      <div class="field mt-4">
+        <label for="gradeValue">Grade Value</label>
+        <input
+          id="gradeValue"
+          type="number"
+          pInputText
+          [(ngModel)]="gradeValue"
+          class="w-full mt-2"
+        />
+      </div>
+
+      <div class="field mt-4">
+        <label for="gradeDate">Date</label>
+        <p-calendar
+          id="gradeDate"
+          [(ngModel)]="gradeDate"
+          dateFormat="yy-mm-dd"
+          class="w-full"
+        ></p-calendar>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancel"
+        icon="pi pi-times"
+        [text]="true"
+        (click)="closeAddMultipleGradesDialog()"
+      ></p-button>
+      <p-button
+        label="Add"
+        icon="pi pi-check"
+        (click)="onAddMultipleGrades()"
+        [disabled]="!selectedStudentsForGrades.length || !gradeValue"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
+
+  
+  <p-dialog
+    header="Manage Grades"
+    [(visible)]="manageGradesDialogVisible"
+    [modal]="true"
+    [style]="{ width: '600px' }"
+    styleClass="p-fluid"
+  >
+    <ng-template pTemplate="content">
+      <h3 *ngIf="selectedStudentForGrades">
+        Grades for {{ selectedStudentForGrades.firstName }} {{ selectedStudentForGrades.lastName }}
+      </h3>
+
+      
       <p-table
-        [value]="courseStudents"
-        class="shadow-md hover:shadow-lg transition-shadow rounded-md"
+        [value]="gradesForSelectedStudent"
+        class="shadow-md hover:shadow-lg transition-shadow rounded-md mt-4"
         [paginator]="false"
-        data-cy="course-students-table"
       >
         <ng-template pTemplate="header">
           <tr>
-            <th>Name</th>
-            
+            <th>Value</th>
+            <th>Date</th>
             <th class="text-right">Actions</th>
           </tr>
         </ng-template>
-  
-        <ng-template pTemplate="body" let-student>
+
+        <ng-template pTemplate="body" let-g>
           <tr>
-            <td>{{ student.firstName }} {{ student.lastName }}</td>
+            <td>{{ g.value }}</td>
+            <td>{{ g.date | date:'shortDate' }}</td>
             <td class="text-right">
+            
+              <button
+                pButton
+                icon="pi pi-pencil"
+                class="p-button-rounded p-button-text p-button-warning mr-2"
+                (click)="openEditGradeDialog(g)"
+              ></button>
+
+              
               <button
                 pButton
                 icon="pi pi-trash"
-                *ngIf="role=='Teacher'"
                 class="p-button-rounded p-button-text p-button-danger"
-                (click)="onRemoveStudent(student)"
-                data-cy="remove-student-btn"
+                (click)="onDeleteGrade(g.id)"
               ></button>
             </td>
           </tr>
         </ng-template>
       </p-table>
-    </div>
+
+     
+      <div class="mt-4 text-right">
+        <button
+          pButton
+          label="Add Grade"
+          icon="pi pi-plus"
+          (click)="openAddSingleGradeDialog()"
+        ></button>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Close"
+        icon="pi pi-times"
+        [text]="true"
+        (click)="closeManageGradesDialog()"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
+
   
-    
-    <p-dialog
-      header="Add Students"
-      [(visible)]="addStudentDialogVisible"
-      [modal]="true"
-      [style]="{ width: '450px', 'min-height': '450px', 'max-height': '80vh' }"
-      styleClass="p-fluid"
-    >
-      <ng-template pTemplate="content">
-        <div class="field">
-          <label for="selectedStudents">Select Student(s)</label>
-          
-          <p-multiSelect
-             id="selectedStudents"
-            [options]="availableStudents"
-            [(ngModel)]="selectedStudentIds"
-            optionLabel="fullName"  
-            optionValue="id"
-            [filter]="true"
-            defaultLabel="Choose student(s)"
-            display="chip"
-            [maxSelectedLabels]="3"
-            class="w-full mt-2"
-            >
-            </p-multiSelect>
-        </div>
-      </ng-template>
-  
-      <ng-template pTemplate="footer">
-        <p-button
-          label="Cancel"
-          icon="pi pi-times"
-          [text]="true"
-          (onClick)="closeAddStudentDialog()"
-        ></p-button>
-        <p-button
-          label="Add"
-          icon="pi pi-check"
-          (onClick)="onAddStudents()"
-          [disabled]="!selectedStudentIds || !selectedStudentIds.length"
-        ></p-button>
-      </ng-template>
-    </p-dialog>
-  </div>
-  
+  <p-dialog
+    header="{{ editingGrade ? 'Edit Grade' : 'Add Grade' }}"
+    [(visible)]="singleGradeDialogVisible"
+    [modal]="true"
+    [style]="{ width: '450px' }"
+    styleClass="p-fluid"
+  >
+    <ng-template pTemplate="content">
+      <div class="field">
+        <label for="singleGradeValue">Value</label>
+        <input
+          id="singleGradeValue"
+          type="number"
+          pInputText
+          [(ngModel)]="singleGradeValue"
+          class="w-full mt-2"
+        />
+      </div>
+
+      <div class="field mt-4">
+        <label for="singleGradeDate">Date</label>
+        <p-calendar
+          id="singleGradeDate"
+          [(ngModel)]="singleGradeDate"
+          dateFormat="yy-mm-dd"
+          class="w-full"
+        ></p-calendar>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancel"
+        icon="pi pi-times"
+        [text]="true"
+        (click)="closeSingleGradeDialog()"
+      ></p-button>
+      <p-button
+        label="Save"
+        icon="pi pi-check"
+        (click)="onSaveSingleGrade()"
+        [disabled]="!singleGradeValue"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
+</div>

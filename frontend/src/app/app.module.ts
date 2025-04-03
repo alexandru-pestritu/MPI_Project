@@ -29,6 +29,7 @@ import { MenuModule } from 'primeng/menu';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { CardModule } from 'primeng/card';
+import {CalendarModule} from 'primeng/calendar'
 import {TextareaModule} from 'primeng/textarea';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
@@ -49,6 +50,7 @@ import { CourseComponent } from './components/course/course.component';
   imports: [
     BrowserModule,
     TableModule,
+    CalendarModule,
     FormsModule,
     MultiSelectModule,
     TextareaModule,

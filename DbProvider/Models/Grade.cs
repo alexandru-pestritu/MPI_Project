@@ -12,8 +12,9 @@ public class Grade
     
     public DateTime Date { get; set; }
     
-    public Grade(int courseId, int studentId, int value, DateTime date)
+    public Grade(int id,int courseId, int studentId, int value, DateTime date)
     {
+        Id = id;
         CourseId = courseId;
         StudentId = studentId;
         Value = value;

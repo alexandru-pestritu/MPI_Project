@@ -60,6 +60,17 @@ builder.Services.AddSingleton<IUserProvider>(sp =>
     return new UserProvider(dbManager);
 });
 
+builder.Services.AddSingleton<IGradeProvider>(sp =>
+{
+    IDbManager? dbManager = sp.GetService<IDbManager>();
+    if (dbManager is null)
+    {
+        throw new InvalidOperationException("Database manager not found");
+    }
+
+    return new GradeProvider(dbManager);
+});
+
 builder.Services.AddSingleton<IAuthProvider>(sp =>
 {
     IDbManager? dbManager = sp.GetService<IDbManager>();
