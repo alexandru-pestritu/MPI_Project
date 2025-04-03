@@ -42,6 +42,28 @@ public class GradeController : Controller
         return Ok(grades);
     }
     
+    [HttpGet]
+    [Route("get-grades-by-student")]
+    public async Task<IActionResult> GetGradesByStudent()
+    {
+        var userIdClaim = User.FindFirst("UserId");
+        if (userIdClaim == null)
+        {
+            return Unauthorized("No user ID claim found in the token.");
+        }
+        if (!int.TryParse(userIdClaim.Value, out var userId))
+        {
+            return BadRequest("Invalid user ID claim in the token.");
+        }
+        
+        if(User.FindFirst("Role")?.Value != "Student")
+        {
+            return Unauthorized("You are not authorized to view the grades.");
+        }
+        
+        var grades = await _gradeProvider.GetGradesByStudent(userId);
+        return Ok(grades);
+    }
     
     [HttpPost]
     [Route("add-grades")]

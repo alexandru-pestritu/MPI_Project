@@ -11,4 +11,6 @@ public interface IGradeProvider
     public Task<List<Grade?>> AddGrades(List<Grade> grades);
     
     public Task<bool> DeleteGrade(int gradeId);
+    
+    public Task<List<Grade>?> GetGradesByStudent(int studentId);
 }

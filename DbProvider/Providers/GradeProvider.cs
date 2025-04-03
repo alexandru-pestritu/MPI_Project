@@ -58,6 +58,12 @@ public class GradeProvider : IGradeProvider
         return await _manager.DeleteAsync("Grades", new KeyValuePair<string, object>("Id", gradeId));
     }
 
+    public async Task<List<Grade>?> GetGradesByStudent(int studentId)
+    {
+        string query = "SELECT * FROM Grades WHERE StudentId = @StudentId";
+        return await _manager.ReadListOfTypeAsync(query, ConvertGrade, new KeyValuePair<string, object>("StudentId", studentId));
+    }
+
     private bool IsGradeValueValid(int value)
     {
         return value >= 1 && value <= 10;
