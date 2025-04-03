@@ -66,7 +66,7 @@ public class GradeController : Controller
         return Ok(addedGrades);
     }
     
-    [HttpPost]
+    [HttpPut]
     [Route("edit-grade")]
     public async Task<IActionResult> EditGrade([FromBody] Grade grade)
     {
