@@ -22,6 +22,10 @@ public class GradeProvider : IGradeProvider
 
     public async Task<bool> EditGrade(Grade grade)
     {
+        
+        if(!IsGradeValueValid(grade.Value))
+            return false;
+        
         return await _manager.UpdateAsync("Grades",
             new KeyValuePair<string, object>("Id", grade.Id),
             new KeyValuePair<string, object>("StudentId", grade.StudentId),
@@ -35,6 +39,8 @@ public class GradeProvider : IGradeProvider
         List<Grade?> result = new List<Grade?>();
         foreach (var grade in grades)
         {
+            if (!IsGradeValueValid(grade.Value))
+                continue;
             int id = await _manager.InsertAsyncWithReturn<int>("Grades", "Id",
                 new KeyValuePair<string, object>("StudentId", grade.StudentId),
                 new KeyValuePair<string, object>("CourseId", grade.CourseId),
@@ -51,7 +57,11 @@ public class GradeProvider : IGradeProvider
     {
         return await _manager.DeleteAsync("Grades", new KeyValuePair<string, object>("Id", gradeId));
     }
-    
+
+    private bool IsGradeValueValid(int value)
+    {
+        return value >= 1 && value <= 10;
+    }
     
     private Grade ConvertGrade(object[] values)
     {
