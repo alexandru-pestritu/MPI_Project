@@ -145,13 +145,14 @@ public class GradeController : Controller
     /// <param name="file">The CSV file containing grades to upload.</param>
     /// <returns>The list of inserted <see cref="Grade"/> objects.</returns>
     [HttpPost("bulk-upload")]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public async Task<IActionResult> BulkUpload([FromForm] IFormFile file)
     {
         if (!TryValidateTeacher(out var errorResult))
         {
             return errorResult;
         }
-
+    
         try
         {
             var result = await _gradeProvider.BulkUploadFromCsvAsync(file);
@@ -185,5 +186,18 @@ public class GradeController : Controller
 
         var grades = await _gradeProvider.GetStudentGradesAtCourse(userId, courseId);
         return Ok(grades);
+    }
+    
+    /// <summary>
+    ///  Retrieves the average grade for the authenticated student.
+    /// </summary>
+    /// <returns>The average grade for the student.</returns>
+    [HttpGet("get-average-grade")]
+    public async Task<IActionResult> GetAverageGrade()
+    {
+        if (!TryValidateStudent(out var userId, out var errorResult)) return errorResult;
+
+        var averageGrade = await _gradeProvider.GetAverageGrade(userId);
+        return Ok(new { AverageGrade = averageGrade });
     }
 }

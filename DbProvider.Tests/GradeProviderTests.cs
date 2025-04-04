@@ -413,6 +413,45 @@ namespace DbProvider.Tests
         }
         #endregion
         
+        #region GetAverageGrade Tests
+        [Test]
+        public async Task GetAverageGrade_NoGradesFound_ReturnsZero()
+        {
+            _dbManagerMock
+                .Setup(db => db.ReadListOfTypeAsync(
+                    "SELECT * FROM Grades WHERE StudentId = @StudentId",
+                    It.IsAny<Func<object[], Grade>>(),
+                    It.Is<KeyValuePair<string, object>[]>(p => (int)p[0].Value == 123)))
+                .ReturnsAsync(new List<Grade>());
+            
+            float result = await _gradeProvider.GetAverageGrade(123);
+            
+            Assert.That(result, Is.EqualTo(0));
+            _dbManagerMock.VerifyAll();
+        }
+
+        [Test]
+        public async Task GetAverageGrade_GradesFound_ReturnsCorrectAverage()
+        {
+            var grades = new List<Grade>
+            {
+                new Grade(1, 10, 123, 8, DateTime.Now),
+                new Grade(2, 10, 123, 9, DateTime.Now)
+            };
+            _dbManagerMock
+                .Setup(db => db.ReadListOfTypeAsync(
+                    "SELECT * FROM Grades WHERE StudentId = @StudentId",
+                    It.IsAny<Func<object[], Grade>>(),
+                    It.Is<KeyValuePair<string, object>[]>(p => (int)p[0].Value == 123)))
+                .ReturnsAsync(grades);
+            
+            float result = await _gradeProvider.GetAverageGrade(123);
+            
+            Assert.That(result, Is.EqualTo(8.5f));
+            _dbManagerMock.VerifyAll();
+        }
+        #endregion
+        
         #region Helpers
 
         /// <summary>

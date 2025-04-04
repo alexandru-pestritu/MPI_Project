@@ -83,4 +83,13 @@ export class GradeService {
   getStudentGradesAtCourse(courseId: number): Observable<Grade[]> {
     return this.httpService.get<Grade[]>(`${this.endpoint}/get-student-grades-at-course/${courseId}`);
   }
+
+
+  /**
+   * Retrieves the average grade for a specific course.
+   * @returns An observable containing the average grade.
+   */
+  getAverageGrade(): Observable<any> {
+    return this.httpService.get<any>(`${this.endpoint}/get-average-grade`);
+  }
 }
