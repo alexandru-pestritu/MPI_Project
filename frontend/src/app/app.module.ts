@@ -31,6 +31,7 @@ import { TableModule } from 'primeng/table';
 import { CardModule } from 'primeng/card';
 import {CalendarModule} from 'primeng/calendar'
 import {TextareaModule} from 'primeng/textarea';
+import { FileUploadModule } from 'primeng/fileupload';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { CourseComponent } from './components/course/course.component';
@@ -54,6 +55,7 @@ import { GradesComponent } from './components/grades/grades.component';
     TableModule,
     CalendarModule,
     FormsModule,
+    FileUploadModule,
     MultiSelectModule,
     TextareaModule,
     DialogModule,

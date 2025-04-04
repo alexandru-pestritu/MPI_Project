@@ -47,6 +47,16 @@
           class="p-button-sm"
           (click)="openAddMultipleGradesDialog()"
         ></button>
+
+        <p-fileUpload
+        mode="basic"
+        name="file"
+        accept=".csv"
+        [auto]="true"
+        [customUpload]="true"
+        chooseLabel="Bulk Upload"
+        (uploadHandler)="onBulkUpload($event)"
+      ></p-fileUpload>
       </div>
     </div>
 

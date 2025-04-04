@@ -138,4 +138,38 @@ public class GradeController : Controller
         errorResult = null!;
         return true;
     }
+    
+    /// <summary>
+    /// Upload a CSV file and bulk-insert grades. Only accessible by teachers.
+    /// </summary>
+    /// <param name="file">The CSV file containing grades to upload.</param>
+    /// <returns>The list of inserted <see cref="Grade"/> objects.</returns>
+    [HttpPost("bulk-upload")]
+    public async Task<IActionResult> BulkUpload([FromForm] IFormFile file)
+    {
+        if (!TryValidateTeacher(out var errorResult))
+        {
+            return errorResult;
+        }
+
+        try
+        {
+            var result = await _gradeProvider.BulkUploadFromCsvAsync(file);
+            return Ok(result);
+        }
+        catch (ArgumentException argEx)
+        {
+           
+            return BadRequest(argEx.Message);
+        }
+        catch (IOException ioEx)
+        {
+           
+            return BadRequest(ioEx.Message);
+        }
+        catch
+        {
+            return StatusCode(500, "An unexpected error occurred while processing the file.");
+        }
+    }
 }

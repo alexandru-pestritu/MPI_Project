@@ -375,6 +375,24 @@ export class CourseComponent implements OnInit {
     }
   }
 
+
+  onBulkUpload(event: any): void {
+    if (!event.files || !event.files.length) {
+      return;
+    }
+  
+    const file: File = event.files[0];
+    this.gradeService.importEntities(file).subscribe({
+      next: () => {
+        this.notificationService.showSuccess('Success', 'Bulk upload successful.');
+        this.loadGrades(); // Refresh the grades after a successful upload
+      },
+      error: () => {
+        this.notificationService.showError('Error', 'Bulk upload failed.');
+      }
+    });
+  }
+
   /**
    * Deletes a specific grade after confirmation.
    * @param gradeId ID of the grade to delete.

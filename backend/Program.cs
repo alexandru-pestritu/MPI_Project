@@ -67,8 +67,18 @@ builder.Services.AddSingleton<IGradeProvider>(sp =>
     {
         throw new InvalidOperationException("Database manager not found");
     }
+    IUserProvider? userProvider = sp.GetService<IUserProvider>();
+    if (userProvider is null)
+    {
+        throw new InvalidOperationException("User provider not found");
+    }
+    ICourseProvider? courseProvider = sp.GetService<ICourseProvider>();
+    if (courseProvider is null)
+    {
+        throw new InvalidOperationException("Course provider not found");
+    }
 
-    return new GradeProvider(dbManager);
+    return new GradeProvider(dbManager,userProvider,courseProvider);
 });
 
 builder.Services.AddSingleton<IAuthProvider>(sp =>

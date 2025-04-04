@@ -1,4 +1,5 @@
 ﻿using DbProvider.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace DbProvider.Providers;
 
@@ -47,4 +48,11 @@ public interface IGradeProvider
     /// <returns>A task that represents the asynchronous operation. 
     /// The task result contains a list of <see cref="Grade"/> objects for the student, or <c>null</c> if none found.</returns>
     public Task<List<Grade>?> GetGradesByStudent(int studentId);
+    
+    /// <summary>
+    /// Reads grades from a CSV file, validates them, and bulk-inserts valid entries.
+    /// </summary>
+    /// <param name="file">The uploaded CSV file (e.g. from an Angular front-end).</param>
+    /// <returns>A list of created <see cref="Grade"/> objects (with IDs), or <c>null</c> for rows that failed validation.</returns>
+    Task<List<Grade?>> BulkUploadFromCsvAsync(IFormFile file);
 }

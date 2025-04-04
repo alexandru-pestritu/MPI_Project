@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using DbProvider.Database;
 using DbProvider.Models;
 using DbProvider.Providers;
+using Microsoft.AspNetCore.Http;
 using Moq;
 using NUnit.Framework;
 
@@ -13,13 +15,17 @@ namespace DbProvider.Tests
     public class GradeProviderTests
     {
         private Mock<IDbManager> _dbManagerMock;
+        private Mock<IUserProvider> _userProviderMock;
+        private Mock<ICourseProvider> _courseProviderMock;
         private GradeProvider _gradeProvider;
 
         [SetUp]
         public void SetUp()
         {
             _dbManagerMock = new Mock<IDbManager>(MockBehavior.Strict);
-            _gradeProvider = new GradeProvider(_dbManagerMock.Object);
+            _userProviderMock = new Mock<IUserProvider>(MockBehavior.Strict);
+            _courseProviderMock = new Mock<ICourseProvider>(MockBehavior.Strict);
+            _gradeProvider = new GradeProvider(_dbManagerMock.Object, _userProviderMock.Object, _courseProviderMock.Object);
         }
 
         [Test]
@@ -201,5 +207,192 @@ namespace DbProvider.Tests
             Assert.That(result?.Count, Is.EqualTo(0));
             _dbManagerMock.VerifyAll();
         }
+        
+        #region BulkUploadFromCsvAsync Tests
+        
+        [Test]
+        public void BulkUploadFromCsvAsync_FileIsNull_ThrowsArgumentException()
+        {
+            Assert.ThrowsAsync<ArgumentException>(async () => 
+                await _gradeProvider.BulkUploadFromCsvAsync(null)
+            );
+        }
+
+        [Test]
+        public void BulkUploadFromCsvAsync_FileIsEmpty_ThrowsArgumentException()
+        {
+            
+            var fileMock = new Mock<IFormFile>();
+            fileMock.Setup(f => f.Length).Returns(0);
+
+            Assert.ThrowsAsync<ArgumentException>(async () => 
+                await _gradeProvider.BulkUploadFromCsvAsync(fileMock.Object)
+            );
+        }
+
+        [Test]
+        public async Task BulkUploadFromCsvAsync_SingleValidLine_InsertsGrade()
+        {
+           
+            var csvContent = "10,1,8,2025-01-20\n";
+            var fileMock = CreateMockFormFile(csvContent);
+
+           
+            _userProviderMock
+                .Setup(u => u.getUserByIdAsync(1))
+                .ReturnsAsync(new User(1, "stud1", "pass", "email", 0, true)); // student => role=0
+
+            _courseProviderMock
+                .Setup(c => c.GetCourseById(10))
+                .ReturnsAsync(new Course(10, 999, "CourseName", "Desc"));
+
+            
+            _dbManagerMock
+                .Setup(db => db.InsertAsyncWithReturn<int>(
+                    "Grades",
+                    "Id",
+                    It.IsAny<KeyValuePair<string, object>[]>()))
+                .ReturnsAsync(123); 
+
+            var result = await _gradeProvider.BulkUploadFromCsvAsync(fileMock.Object);
+
+            Assert.That(result.Count, Is.EqualTo(1));
+            Assert.That(result[0], Is.Not.Null);
+
+            
+            Assert.That(result[0]?.Id, Is.EqualTo(123));
+            Assert.That(result[0]?.CourseId, Is.EqualTo(1));
+            Assert.That(result[0]?.StudentId, Is.EqualTo(10));
+            Assert.That(result[0]?.Value, Is.EqualTo(8));
+
+            _userProviderMock.VerifyAll();
+            _courseProviderMock.VerifyAll();
+            _dbManagerMock.VerifyAll();
+        }
+
+        [Test]
+        public async Task BulkUploadFromCsvAsync_MultipleLines_SomeFailParsing_SomeFailValidation()
+        {
+           
+
+            var csvContent = new StringBuilder()
+                .AppendLine("10,1,8,2025-01-20")      
+                .AppendLine("NOT_ENOUGH_COLUMNS")    
+                .AppendLine("10,2,9,BADDATE")
+                .AppendLine("10,3,8,2025-03-15")      
+                .AppendLine("999,4,8,2025-04-01")     
+                .AppendLine("10,5,15,2025-05-10")     
+                .AppendLine("10,6,9,2025-06-01")      
+                .ToString();
+
+            var fileMock = CreateMockFormFile(csvContent);
+
+            
+            _courseProviderMock
+                .Setup(c => c.GetCourseById(10))
+                .ReturnsAsync(new Course(10, 999, "CourseName", "Desc"));
+            _userProviderMock
+                .Setup(u => u.getUserByIdAsync(1))
+                .ReturnsAsync(new User(1, "stud1", "pass", "email", 0, true));
+
+            
+
+            
+            _userProviderMock
+                .Setup(u => u.getUserByIdAsync(3))
+                .ReturnsAsync(new User(3, "teacher1", "pass", "email", 1, true)); 
+
+           
+            _courseProviderMock
+                .Setup(c => c.GetCourseById(999))
+                .ReturnsAsync((Course?)null);
+            _userProviderMock
+                .Setup(u => u.getUserByIdAsync(4))
+                .ReturnsAsync(new User(4, "stud4", "pass", "email", 0, true)); 
+
+            
+            _userProviderMock
+                .Setup(u => u.getUserByIdAsync(5))
+                .ReturnsAsync(new User(5, "stud5", "pass", "email", 0, true));
+
+            
+            _userProviderMock
+                .Setup(u => u.getUserByIdAsync(6))
+                .ReturnsAsync(new User(6, "stud6", "pass", "email", 0, true));
+
+            
+            _dbManagerMock
+                .SetupSequence(db => db.InsertAsyncWithReturn<int>(
+                    "Grades", 
+                    "Id", 
+                    It.IsAny<KeyValuePair<string, object>[]>()))
+                .ReturnsAsync(101) 
+                .ReturnsAsync(102) 
+
+            ;
+
+            var result = await _gradeProvider.BulkUploadFromCsvAsync(fileMock.Object);
+
+            
+            Assert.That(result.Count, Is.EqualTo(7));
+
+            
+            Assert.That(result[0], Is.Not.Null);
+            Assert.That(result[0]?.Id, Is.EqualTo(101));
+
+            
+            Assert.That(result[1], Is.Null);
+
+           
+            Assert.That(result[2], Is.Null);
+
+           
+            Assert.That(result[3], Is.Null);
+
+           
+            Assert.That(result[4], Is.Null);
+
+           
+            Assert.That(result[5], Is.Null);
+
+            
+            Assert.That(result[6], Is.Not.Null);
+            Assert.That(result[6]?.Id, Is.EqualTo(102));
+
+            _userProviderMock.VerifyAll();
+            _courseProviderMock.VerifyAll();
+            _dbManagerMock.VerifyAll();
+        }
+
+        #endregion
+
+
+        
+
+        #region Helpers
+
+        /// <summary>
+        /// Creates a mock IFormFile for testing. 
+        /// This method loads the given CSV text content into a MemoryStream 
+        /// and sets up the mock so that reading it returns the provided CSV.
+        /// </summary>
+        private static Mock<IFormFile> CreateMockFormFile(string fileContent)
+        {
+            var fileMock = new Mock<IFormFile>();
+
+            
+            var contentBytes = Encoding.UTF8.GetBytes(fileContent);
+            var memoryStream = new MemoryStream(contentBytes);
+
+           
+            fileMock.Setup(f => f.OpenReadStream()).Returns(memoryStream);
+           
+            fileMock.Setup(f => f.Length).Returns(contentBytes.Length);
+
+            return fileMock;
+        }
+
+        #endregion
     }
+    
 }
