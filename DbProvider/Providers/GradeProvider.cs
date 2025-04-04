@@ -196,7 +196,22 @@ public class GradeProvider : IGradeProvider
             new KeyValuePair<string, object>("StudentId", studentId),
             new KeyValuePair<string, object>("CourseId", courseId));
     }
-    
+
+    public async Task<float> GetAverageGrade(int studentId)
+    {
+        string query = "SELECT * FROM Grades WHERE StudentId = @StudentId";
+        var grades = await _manager.ReadListOfTypeAsync(query, ConvertGrade, new KeyValuePair<string, object>("StudentId", studentId));
+        if (grades.Count == 0)
+            return 0;
+        
+        float sum = 0;
+        foreach (var grade in grades)
+        {
+            sum += grade.Value;
+        }
+        return sum / grades.Count;
+    }
+
     private bool IsGradeValueValid(int value)
     {
         return value >= 1 && value <= 10;
