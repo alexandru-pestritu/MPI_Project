@@ -10,8 +10,9 @@ public class GradeHistory
     
     public DateTime Date { get; set; }
     
-    public GradeHistory(int gradeId, int value, DateTime date)
+    public GradeHistory(int id,int gradeId, int value, DateTime date)
     {
+        Id = id;
         GradeId = gradeId;
         Value = value;
         Date = date;
