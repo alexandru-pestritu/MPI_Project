@@ -9,11 +9,16 @@ public class GradeProvider : IGradeProvider
 {
     
     private readonly IDbManager _manager;
+    private readonly IUserProvider _userProvider;
+    private readonly ICourseProvider _courseProvider;
     
-    public GradeProvider(IDbManager manager)
+    public GradeProvider(IDbManager manager, IUserProvider userProvider, ICourseProvider courseProvider)
     {
         _manager = manager;
+        _userProvider = userProvider;
+        _courseProvider = courseProvider;
     }
+   
     
     
     public async Task<List<Grade>> GetGrades(int courseId)
@@ -86,57 +91,118 @@ public class GradeProvider : IGradeProvider
         
     }
     
-     public async Task<List<Grade?>> BulkUploadFromCsvAsync(IFormFile file)
+    public async Task<List<Grade?>> BulkUploadFromCsvAsync(IFormFile file)
         {
             if (file == null || file.Length == 0)
                 throw new ArgumentException("File cannot be null or empty.", nameof(file));
 
-            var gradesToAdd = new List<Grade>();
-
+            var validGradesToAdd = new List<Grade>();
+            var resultList = new List<Grade?>(); 
+           
             try
             {
                 using var streamReader = new StreamReader(file.OpenReadStream());
-               
+                
+                
 
                 string? line;
                 while ((line = await streamReader.ReadLineAsync()) != null)
                 {
                     var columns = line.Split(',');
-
-                    
+                   
 
                     if (columns.Length < 4)
                     {
-                      
-                        continue;
-                    }
-
-                    if (!int.TryParse(columns[0], out var studentId) ||
-                        !int.TryParse(columns[1], out var courseId) ||
-                        !int.TryParse(columns[2], out var value))
-                    {
-                       
-                        continue;
-                    }
-
-                    if (!DateTime.TryParse(columns[3], CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
-                    {
-                      
+                        
+                        resultList.Add(null);
                         continue;
                     }
 
                    
-                    var grade = new Grade(0, courseId, studentId, value, date);
-                    gradesToAdd.Add(grade);
+                    if (!int.TryParse(columns[1], out var studentId))
+                    {
+                        resultList.Add(null);
+                        continue;
+                    }
+
+                    if (!int.TryParse(columns[0], out var courseId))
+                    {
+                        resultList.Add(null);
+                        continue;
+                    }
+
+                    if (!int.TryParse(columns[2], out var value))
+                    {
+                        resultList.Add(null);
+                        continue;
+                    }
+
+                    if (!DateTime.TryParse(
+                            columns[3],
+                            CultureInfo.InvariantCulture,
+                            DateTimeStyles.None,
+                            out var date
+                        ))
+                    {
+                        resultList.Add(null);
+                        continue;
+                    }
+
+                    
+                    var user = await _userProvider.getUserByIdAsync(studentId);
+                    if (user == null || user.Role != 0) 
+                    {
+                       
+                        resultList.Add(null);
+                        continue;
+                    }
+
+                    
+                    var course = await _courseProvider.GetCourseById(courseId);
+                    if (course == null)
+                    {
+                        
+                        resultList.Add(null);
+                        continue;
+                    }
+
+                  
+                    if (!IsGradeValueValid(value))
+                    {
+                        resultList.Add(null);
+                        continue;
+                    }
+
+                    
+                    var validGrade = new Grade(0, courseId, studentId, value, date);
+                    
+                   
+                    validGradesToAdd.Add(validGrade);
+                   
+                    resultList.Add(validGrade);
                 }
             }
             catch (Exception ex)
             {
-                
+               
                 throw new IOException($"Error while reading CSV file: {ex.Message}", ex);
             }
 
            
-            return await AddGrades(gradesToAdd);
+            var insertedGrades = await AddGrades(validGradesToAdd);
+
+            
+            int insertIndex = 0; 
+            for (int i = 0; i < resultList.Count; i++)
+            {
+                if (resultList[i] != null)
+                {
+                    
+                    resultList[i] = insertedGrades[insertIndex];
+                    insertIndex++;
+                }
+            }
+
+            return resultList;
         }
 }
