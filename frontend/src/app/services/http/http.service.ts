@@ -45,6 +45,21 @@ export class HttpService {
     return this.http.post<T>(`${this.apiUrl}/${endpoint}`, body, { headers });
   }
 
+
+
+  /**
+ * Sends an HTTP POST request with `FormData` to the specified API endpoint.
+ * @template T The expected response type.
+ * @param endpoint Relative API endpoint.
+ * @param formData The `FormData` payload to send in the request body.
+ * @returns An Observable of type `T`.
+ */
+  postFormData<T>(endpoint: string, formData: FormData): Observable<T> {
+    return this.http.post<T>(`${this.apiUrl}/${endpoint}`, formData, {
+      responseType: 'json',
+    });
+  }
+
   /**
    * Sends an HTTP PUT request to the specified API endpoint with a request body.
    * @template T The expected response type.
@@ -67,4 +82,6 @@ export class HttpService {
   delete<T>(endpoint: string, headers?: HttpHeaders): Observable<T> {
     return this.http.delete<T>(`${this.apiUrl}/${endpoint}`, { headers });
   }
+
+  
 }

@@ -61,4 +61,17 @@ export class GradeService {
   getStudentGrades(): Observable<Grade[]> {
     return this.httpService.get<Grade[]>(`${this.endpoint}/get-grades-by-student`);
   }
+
+
+  /**
+ * Uploads a file containing entities (e.g., a CSV) to the bulk upload API endpoint.
+ * @param file The file to upload, typically a CSV file containing entity data.
+ * @returns An Observable containing the server's response.
+ */
+  importEntities(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.httpService.postFormData<any>(`${this.endpoint}/bulk-upload`, formData);
+  }
 }
