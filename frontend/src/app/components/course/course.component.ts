@@ -49,6 +49,8 @@ export class CourseComponent implements OnInit {
   singleGradeValue: number | null = null;
   singleGradeDate: Date = new Date();
 
+  studentCourseGrades: Grade[] = [];
+
   /**
    * Creates an instance of CourseComponent.
    * @param route ActivatedRoute to extract route parameters.
@@ -99,6 +101,10 @@ export class CourseComponent implements OnInit {
           if (this.role === 'Teacher') {
             this.loadGrades();
           }
+
+          if (this.role === 'Student') {
+            this.loadStudentGradesAtCourse();
+          }
         }
       },
       error: () => {
@@ -133,6 +139,18 @@ export class CourseComponent implements OnInit {
       },
       error: () => {
         this.notificationService.showError('Error', 'Failed to load grades.');
+      }
+    });
+  }
+
+  private loadStudentGradesAtCourse(): void {
+    if (!this.course) return;
+    this.gradeService.getStudentGradesAtCourse(this.course.id).subscribe({
+      next: (gradesList) => {
+        this.studentCourseGrades = gradesList;
+      },
+      error: () => {
+        this.notificationService.showError('Error', 'Failed to load your course grades.');
       }
     });
   }
@@ -385,7 +403,7 @@ export class CourseComponent implements OnInit {
     this.gradeService.importEntities(file).subscribe({
       next: () => {
         this.notificationService.showSuccess('Success', 'Bulk upload successful.');
-        this.loadGrades(); // Refresh the grades after a successful upload
+        this.loadGrades();
       },
       error: () => {
         this.notificationService.showError('Error', 'Bulk upload failed.');
