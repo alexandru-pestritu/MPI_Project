@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { Observable } from 'rxjs';
 import { Grade } from '../../models/grade';
+import { GradeHistory } from '../../models/grade-history';
 
 /**
  * Service for handling grade-related operations such as retrieving, adding, editing, and deleting grades.
@@ -91,5 +92,15 @@ export class GradeService {
    */
   getAverageGrade(): Observable<any> {
     return this.httpService.get<any>(`${this.endpoint}/get-average-grade`);
+  }
+
+
+  /**
+ * Retrieves the history of changes for a specific grade by its ID.
+ * @param gradeId The ID of the grade to retrieve the history for.
+ * @returns An Observable containing an array of `GradeHistory` objects.
+ */
+  getGradeHistory(gradeId:number): Observable<GradeHistory[]>{
+    return this.httpService.get<GradeHistory[]>(`${this.endpoint}/get-grade-history/${gradeId}`);
   }
 }
