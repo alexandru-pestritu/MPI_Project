@@ -33,6 +33,10 @@ public class GradeProvider : IGradeProvider
         if(!IsGradeValueValid(grade.Value))
             return false;
         
+        await _manager.InsertAsync("GradeHistory", new KeyValuePair<string, object>("GradeId", grade.Id),
+            new KeyValuePair<string, object>("Value", grade.Value),
+            new KeyValuePair<string, object>("Date", grade.Date));
+        
         return await _manager.UpdateAsync("Grades",
             new KeyValuePair<string, object>("Id", grade.Id),
             new KeyValuePair<string, object>("StudentId", grade.StudentId),
@@ -54,6 +58,10 @@ public class GradeProvider : IGradeProvider
             int id = await _manager.InsertAsyncWithReturn<int>("Grades", "Id",
                 new KeyValuePair<string, object>("StudentId", grade.StudentId),
                 new KeyValuePair<string, object>("CourseId", grade.CourseId),
+                new KeyValuePair<string, object>("Value", grade.Value),
+                new KeyValuePair<string, object>("Date", grade.Date));
+            
+            await _manager.InsertAsync("GradeHistory", new KeyValuePair<string, object>("GradeId", id),
                 new KeyValuePair<string, object>("Value", grade.Value),
                 new KeyValuePair<string, object>("Date", grade.Date));
             
@@ -212,6 +220,12 @@ public class GradeProvider : IGradeProvider
         return sum / grades.Count;
     }
 
+    public async Task<List<GradeHistory>> GetGradeHistory(int gradeId)
+    {
+        string query = "SELECT * FROM GradeHistory WHERE GradeId = @GradeId";
+        return await _manager.ReadListOfTypeAsync(query, ConvertGradeHistory, new KeyValuePair<string, object>("GradeId", gradeId));
+    }
+
     private bool IsGradeValueValid(int value)
     {
         return value >= 1 && value <= 10;
@@ -227,5 +241,14 @@ public class GradeProvider : IGradeProvider
         
         return new Grade(id,studentId, courseId, value, date);
         
+    }
+
+    private GradeHistory ConvertGradeHistory(object[] values)
+    {
+        int id = (int)values[0];
+        int gradeId = (int)values[1];
+        int value = (int)values[2];
+        System.DateTime date = (System.DateTime)values[3];
+        return new GradeHistory(id,gradeId, value, date);
     }
 }

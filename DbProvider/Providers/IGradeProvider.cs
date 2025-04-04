@@ -73,4 +73,12 @@ public interface IGradeProvider
     /// <returns>A task that represents the asynchronous operation.
     /// The task result contains the average grade as a <see cref="float"/>.</returns>
     Task<float> GetAverageGrade(int studentId);
+    
+    /// <summary>
+    /// Retrieves the history of a specific grade.
+    /// </summary>
+    /// <param name="gradeId">The ID of the grade.</param>
+    /// <returns>A task that represents the asynchronous operation.
+    /// The task result contains a list of <see cref="GradeHistory"/> objects representing the history of the grade.</returns>
+    Task<List<GradeHistory>> GetGradeHistory(int gradeId);
 }
