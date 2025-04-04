@@ -1,5 +1,7 @@
-﻿using DbProvider.Database;
+﻿using System.Globalization;
+using DbProvider.Database;
 using DbProvider.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace DbProvider.Providers;
 
@@ -83,4 +85,58 @@ public class GradeProvider : IGradeProvider
         return new Grade(id,studentId, courseId, value, date);
         
     }
+    
+     public async Task<List<Grade?>> BulkUploadFromCsvAsync(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                throw new ArgumentException("File cannot be null or empty.", nameof(file));
+
+            var gradesToAdd = new List<Grade>();
+
+            try
+            {
+                using var streamReader = new StreamReader(file.OpenReadStream());
+               
+
+                string? line;
+                while ((line = await streamReader.ReadLineAsync()) != null)
+                {
+                    var columns = line.Split(',');
+
+                    
+
+                    if (columns.Length < 4)
+                    {
+                      
+                        continue;
+                    }
+
+                    if (!int.TryParse(columns[0], out var studentId) ||
+                        !int.TryParse(columns[1], out var courseId) ||
+                        !int.TryParse(columns[2], out var value))
+                    {
+                       
+                        continue;
+                    }
+
+                    if (!DateTime.TryParse(columns[3], CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+                    {
+                      
+                        continue;
+                    }
+
+                   
+                    var grade = new Grade(0, courseId, studentId, value, date);
+                    gradesToAdd.Add(grade);
+                }
+            }
+            catch (Exception ex)
+            {
+                
+                throw new IOException($"Error while reading CSV file: {ex.Message}", ex);
+            }
+
+           
+            return await AddGrades(gradesToAdd);
+        }
 }
