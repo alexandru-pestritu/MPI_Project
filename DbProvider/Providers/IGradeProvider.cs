@@ -55,4 +55,14 @@ public interface IGradeProvider
     /// <param name="file">The uploaded CSV file (e.g. from an Angular front-end).</param>
     /// <returns>A list of created <see cref="Grade"/> objects (with IDs), or <c>null</c> for rows that failed validation.</returns>
     Task<List<Grade?>> BulkUploadFromCsvAsync(IFormFile file);
+    
+    
+    /// <summary>
+    /// Retrieves all grades for a specific student in a specific course.
+    /// </summary>
+    /// <param name="studentId">The ID of the student.</param>
+    /// <param name="courseId">The ID of the course.</param>
+    /// <returns>A task that represents the asynchronous operation.
+    /// The task result contains a list of <see cref="Grade"/> objects for the student in the course.</returns>
+    Task<List<Grade>> GetStudentGradesAtCourse(int studentId, int courseId);
 }

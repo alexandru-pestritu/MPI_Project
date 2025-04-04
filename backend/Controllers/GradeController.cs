@@ -172,4 +172,18 @@ public class GradeController : Controller
             return StatusCode(500, "An unexpected error occurred while processing the file.");
         }
     }
+    
+    /// <summary>
+    /// Retrieves all grades for a specific student in a specific course.
+    /// </summary>
+    /// <param name="courseId">The ID of the course.</param>
+    /// <returns>A list of grades for the student in the specified course.</returns>
+    [HttpGet("get-student-grades-at-course/{courseId}")]
+    public async Task<IActionResult> GetStudentGradesAtCourse(int courseId)
+    {
+        if (!TryValidateStudent(out var userId, out var errorResult)) return errorResult;
+
+        var grades = await _gradeProvider.GetStudentGradesAtCourse(userId, courseId);
+        return Ok(grades);
+    }
 }

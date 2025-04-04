@@ -3,6 +3,8 @@
 /backend/bin
 /DbProvider/obj
 /DbProvider/bin
+/DbProvider.Tests/obj
+/DbProvider.Tests/bin
 /database_data
 
 /frontend/dist

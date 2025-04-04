@@ -367,8 +367,52 @@ namespace DbProvider.Tests
         #endregion
 
 
-        
+        [Test]
+        public async Task GetStudentGradesAtCourse_ReturnsList()
+        {
+            // Arrange
+            var grades = new List<Grade>
+            {
+                new Grade(1, 10, 20, 8, DateTime.Now),
+                new Grade(2, 10, 20, 9, DateTime.Now)
+            };
+    
+            _dbManagerMock
+                .Setup(db => db.ReadListOfTypeAsync(
+                    "SELECT * FROM Grades WHERE StudentId = @StudentId AND CourseId = @CourseId",
+                    It.IsAny<Func<object[], Grade>>(),
+                    It.Is<KeyValuePair<string, object>[]>(p => 
+                        (int)p[0].Value == 10 && (int)p[1].Value == 20)))
+                .ReturnsAsync(grades);
+    
+            // Act
+            var result = await _gradeProvider.GetStudentGradesAtCourse(10, 20);
+    
+            // Assert
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Count, Is.EqualTo(2));
+            _dbManagerMock.VerifyAll();
+        }
 
+        #region GetStudentGradesAtCourse Tests
+        [Test]
+        public async Task GetStudentGradesAtCourse_ReturnsEmptyList()
+        {
+            _dbManagerMock
+                .Setup(db => db.ReadListOfTypeAsync(
+                    "SELECT * FROM Grades WHERE StudentId = @StudentId AND CourseId = @CourseId",
+                    It.IsAny<Func<object[], Grade>>(),
+                    It.IsAny<KeyValuePair<string, object>[]>()))
+                .ReturnsAsync(new List<Grade>());
+            
+            var result = await _gradeProvider.GetStudentGradesAtCourse(999, 999);
+            
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Count, Is.EqualTo(0));
+            _dbManagerMock.VerifyAll();
+        }
+        #endregion
+        
         #region Helpers
 
         /// <summary>
