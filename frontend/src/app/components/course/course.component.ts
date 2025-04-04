@@ -11,6 +11,7 @@ import { Course } from '../../models/course';
 import { UserProfile } from '../../models/user-profile';
 import { CourseStudentLink } from '../../models/course-student-link';
 import { Grade } from '../../models/grade';
+import { GradeHistory } from '../../models/grade-history';
 
 /**
  * Component responsible for displaying course details, managing enrolled students,
@@ -50,6 +51,9 @@ export class CourseComponent implements OnInit {
   singleGradeDate: Date = new Date();
 
   studentCourseGrades: Grade[] = [];
+
+  gradeHistoryDialogVisible: boolean = false;
+  gradeHistory: GradeHistory[] = [];
 
   /**
    * Creates an instance of CourseComponent.
@@ -435,5 +439,32 @@ export class CourseComponent implements OnInit {
         });
       }
     });
+  }
+
+
+  /**
+ * Fetches the grade history for the specified grade ID and opens the grade history dialog.
+ * Displays an error notification if the request fails.
+ * @param gradeId The ID of the grade for which to load history.
+ */
+  openGradeHistoryDialog(gradeId: number): void {
+    this.gradeService.getGradeHistory(gradeId).subscribe({
+      next: (history) => {
+        this.gradeHistory = history;
+        this.gradeHistoryDialogVisible = true;
+      },
+      error: () => {
+        this.notificationService.showError('Error', 'Failed to load grade history.');
+      }
+    });
+  }
+  
+
+  /**
+ * Closes the grade history dialog and clears the loaded history.
+ */
+  closeGradeHistoryDialog(): void {
+    this.gradeHistoryDialogVisible = false;
+    this.gradeHistory = [];
   }
 }
