@@ -73,23 +73,6 @@ public class GradeProvider : IGradeProvider
         string query = "SELECT * FROM Grades WHERE StudentId = @StudentId";
         return await _manager.ReadListOfTypeAsync(query, ConvertGrade, new KeyValuePair<string, object>("StudentId", studentId));
     }
-
-    private bool IsGradeValueValid(int value)
-    {
-        return value >= 1 && value <= 10;
-    }
-    
-    private Grade ConvertGrade(object[] values)
-    {
-        int id = (int)values[0];
-        int studentId = (int)values[1];
-        int courseId = (int)values[2];
-        int value = (int)values[3];
-        System.DateTime date = (System.DateTime)values[4];
-        
-        return new Grade(id,studentId, courseId, value, date);
-        
-    }
     
     public async Task<List<Grade?>> BulkUploadFromCsvAsync(IFormFile file)
         {
@@ -205,4 +188,29 @@ public class GradeProvider : IGradeProvider
 
             return resultList;
         }
+
+    public async Task<List<Grade>> GetStudentGradesAtCourse(int studentId, int courseId)
+    {
+        string query = "SELECT * FROM Grades WHERE StudentId = @StudentId AND CourseId = @CourseId";
+        return await _manager.ReadListOfTypeAsync(query, ConvertGrade,
+            new KeyValuePair<string, object>("StudentId", studentId),
+            new KeyValuePair<string, object>("CourseId", courseId));
+    }
+    
+    private bool IsGradeValueValid(int value)
+    {
+        return value >= 1 && value <= 10;
+    }
+    
+    private Grade ConvertGrade(object[] values)
+    {
+        int id = (int)values[0];
+        int studentId = (int)values[1];
+        int courseId = (int)values[2];
+        int value = (int)values[3];
+        System.DateTime date = (System.DateTime)values[4];
+        
+        return new Grade(id,studentId, courseId, value, date);
+        
+    }
 }
