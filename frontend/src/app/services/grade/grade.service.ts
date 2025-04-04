@@ -74,4 +74,13 @@ export class GradeService {
 
     return this.httpService.postFormData<any>(`${this.endpoint}/bulk-upload`, formData);
   }
+
+  /**
+   * Retrieves grades for a specific course for the currently logged-in student.
+   * @param courseId The ID of the course.
+   * @returns An observable containing a list of the student's grades for the specified course.
+   */
+  getStudentGradesAtCourse(courseId: number): Observable<Grade[]> {
+    return this.httpService.get<Grade[]>(`${this.endpoint}/get-student-grades-at-course/${courseId}`);
+  }
 }
