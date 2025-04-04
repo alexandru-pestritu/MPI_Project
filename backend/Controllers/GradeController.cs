@@ -200,4 +200,24 @@ public class GradeController : Controller
         var averageGrade = await _gradeProvider.GetAverageGrade(userId);
         return Ok(new { AverageGrade = averageGrade });
     }
+    
+    /// <summary>
+    /// Retrieves the history of a specific grade by its ID.
+    /// </summary>
+    /// <param name="gradeId">The ID of the grade.</param>
+    /// <returns>A list of <see cref="GradeHistory"/> objects representing the history of the grade.</returns>
+    
+    [HttpGet("get-grade-history/{gradeId}")]
+    public async Task<IActionResult> GetGradeHistory(int gradeId)
+    {
+        
+        var userIdClaim = User.FindFirst("UserId");
+        if (userIdClaim == null)
+        {
+            return BadRequest("Invalid or missing user ID claim.");
+        }
+        
+        var history = await _gradeProvider.GetGradeHistory(gradeId);
+        return Ok(history);
+    }
 }
