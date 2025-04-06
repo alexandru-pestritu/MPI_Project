@@ -31,7 +31,7 @@ jobs:
         run: dotnet build --configuration Release ./backend
 
       - name: Run Backend Tests
-        run: dotnet test --configuration Release --no-build --verbosity normal ./DbProvider.Tests
+        run: dotnet test --configuration Release --verbosity normal ./DbProvider.Tests
 
   frontend:
     name: Build & Test Angular Frontend
