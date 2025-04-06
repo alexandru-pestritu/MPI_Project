@@ -31,7 +31,7 @@ jobs:
         run: dotnet build --configuration Release ./backend
 
       - name: Run Backend Tests
-        run: dotnet test --configuration Release --no-build --verbosity normal ./backend
+        run: dotnet test --configuration Release --no-build --verbosity normal ./DbProvider.Tests
 
   frontend:
     name: Build & Test Angular Frontend
@@ -57,7 +57,3 @@ jobs:
       - name: Build Angular Project
         run: ng build --configuration=production
         working-directory: ./frontend
-
-      #- name: Run Angular Tests
-        #run: ng test --watch=false --browsers=ChromeHeadless
-        #working-directory: ./frontend
